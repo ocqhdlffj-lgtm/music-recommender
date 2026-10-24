@@ -2,7 +2,9 @@
 
 기분·상황·장르·시대를 고르면 5,145곡 중에서 어울리는 곡을 추천하는 **단일 HTML 파일** 프로젝트입니다.
 
-바로 열기(비공개 링크): https://claude.ai/artifact/KNDPE3bwKZpZTy78Yzstty `music-recommender.html`을 더블클릭하면 브라우저에서 열립니다. 외부 API는 쓰지 않습니다.
+바로 열기(비공개 링크): https://claude.ai/artifact/KNDPE3bwKZpZTy78Yzstty
+
+PC에서는 `music-recommender.html`을 더블클릭하면 브라우저에서 열립니다. 외부 API는 쓰지 않습니다.
 
 ## 구조
 ```
