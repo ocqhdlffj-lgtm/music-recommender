@@ -100,13 +100,13 @@ footer{margin-top:40px;color:var(--muted);font-size:12px;text-align:center}
 const SONGS = /*__SONGS__*/[].map(([title,artist,year,genre,moods,scenes,note],i)=>({id:i,title,artist,year,genre,moods,scenes,note,era:eraOf(year),src:srcOf(note)}));
 
 // 직접 고른 곡이 먼저, 차트 곡은 출처 문구로 구분
-function srcOf(note){ return note.startsWith("차트 · 빌보드") ? "빌보드 연말 차트" : note.startsWith("차트 · 가온") ? "한국 차트 1위곡" : "직접 고른 곡"; }
+function srcOf(note){ return note.startsWith("차트 · 빌보드") ? "빌보드 연말 차트" : note.startsWith("차트 · ") ? "한국 차트 1위곡" : "직접 고른 곡"; }
 const SRC_ORDER = ["직접 고른 곡","한국 차트 1위곡","빌보드 연말 차트"];
 
 function eraOf(y){ if(y<1970) return "~60년대"; if(y<2000) return `${String(y).slice(2,3)}0년대`; if(y<2010) return "2000년대"; if(y<2020) return "2010년대"; return "2020년대"; }
 
 const uniq = (arr) => [...new Set(arr)];
-const GENRE_ORDER = ["발라드","K-pop","인디/밴드","포크","록","팝","R&B/소울","댄스/일렉트로닉","힙합","컨트리","재즈","J-pop","클래식/뉴에이지"];
+const GENRE_ORDER = ["발라드","K-pop","인디/밴드","포크","록","팝","R&B/소울","댄스/일렉트로닉","힙합","컨트리","트로트","재즈","J-pop","클래식/뉴에이지"];
 const ERA_ORDER = ["~60년대","70년대","80년대","90년대","2000년대","2010년대","2020년대"];
 const FILTERS = {
   mood:  {key:"moods",  opts:["신남","잔잔","위로","설렘","그리움"]},
