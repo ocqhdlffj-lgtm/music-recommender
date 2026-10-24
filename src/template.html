@@ -21,6 +21,7 @@
   --accent:#fb923c; --accent-soft:#3a2416; --chip:#2c2a26; --star:#fbbf24; color-scheme:dark;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;line-height:1.55}
 .wrap{max-width:960px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
 header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
@@ -55,9 +56,20 @@ input[type=search]{flex:1;min-width:180px;border:1px solid var(--line);backgroun
 .note.src{color:var(--muted);font-size:13px}
 .tags{display:flex;flex-wrap:wrap;gap:4px}
 .tag{font-size:12px;background:var(--chip);color:var(--muted);border-radius:6px;padding:2px 7px}
-.listen{margin-top:auto;font-size:13px;color:var(--accent);text-decoration:none;font-weight:700}
+.listen{font-size:13px;color:var(--accent);text-decoration:none;font-weight:700}
 .more{display:flex;justify-content:center;margin-top:16px}
 .empty{color:var(--muted);text-align:center;padding:40px 0}
+.then{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.then .row label{font-size:14px;font-weight:700}
+.then input{width:120px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:8px 10px;font-size:15px}
+.hint{margin:0;color:var(--muted);font-size:13px}
+.simbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:14px;padding:10px 14px;border-radius:12px;background:var(--accent-soft);color:var(--ink);font-size:14px}
+.simbar b{color:var(--accent)}
+.actions{margin-top:auto;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.linkbtn{background:none;border:0;padding:0;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer}
+.linkbtn:hover{color:var(--accent)}
+.linkbtn:focus-visible{color:var(--accent);outline:2px solid var(--accent);outline-offset:2px}
+.tag.age{background:var(--accent-soft);color:var(--accent);font-weight:700}
 footer{margin-top:40px;color:var(--muted);font-size:12px;text-align:center}
 </style>
 </head>
@@ -86,8 +98,15 @@ footer{margin-top:40px;color:var(--muted);font-size:12px;text-align:center}
 
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" aria-selected="true" data-tab="all">추천 목록</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="then">🕰 그때 그 노래</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="fav">★ 내 즐겨찾기</button>
   </div>
+  <div class="then" id="thenPanel" hidden>
+    <div class="row"><label for="birth">태어난 해</label><input type="number" id="birth" min="1930" max="2025" inputmode="numeric" placeholder="예: 1988"></div>
+    <div class="chips" id="ages"></div>
+    <p class="hint">태어난 해를 넣으면 그 나이 때 1위곡과 연말 차트 곡을 연도순으로 보여 드려요. 위의 기분·장르 필터도 함께 적용돼요.</p>
+  </div>
+  <div class="simbar" id="simbar" hidden><span id="simText"></span><button class="btn ghost" id="simClose" type="button">← 목록으로 돌아가기</button></div>
   <div class="count" id="count"></div>
   <div class="grid" id="grid"></div>
   <div class="more"><button class="btn ghost" id="moreBtn" type="button" hidden>더 보기</button></div>
@@ -116,7 +135,24 @@ const FILTERS = {
   src:   {key:"src",    opts:SRC_ORDER},
 };
 const PAGE = 60;
-const state = {mood:new Set(),scene:new Set(),genre:new Set(),era:new Set(),src:new Set(),q:"",tab:"all",pick:null,limit:PAGE};
+const state = {mood:new Set(),scene:new Set(),genre:new Set(),era:new Set(),src:new Set(),q:"",tab:"all",pick:null,limit:PAGE,similar:null,birth:null,age:1};
+// 그때 그 노래: [이름, 시작 나이, 끝 나이]
+const AGES = [["10대 초반",13,15],["10대 후반",16,19],["20대 초반",20,24],["20대 후반",25,29],["30대",30,39]];
+const rankOf = (s) => { const m = s.note.match(/(\d+)위$/); return m ? +m[1] : 0; };
+const isKo = (s) => /[가-힣]/.test(s.title+s.artist) || ["K-pop","트로트","발라드"].includes(s.genre) || s.src==="한국 차트 1위곡";
+const mainArtist = (s) => s.artist.toLowerCase().split(/\s+(?:featuring|feat\.?|ft\.?|with|and|&|x)\s+|,|\//)[0].trim();
+
+// 비슷한 곡 점수: 같은 가수 > 장르·국내외 > 겹치는 기분·상황 > 가까운 연도
+function simScore(a, b){
+  let n = 0;
+  if(mainArtist(a)===mainArtist(b)) n += 4;
+  if(a.genre===b.genre) n += 2;
+  if(isKo(a)===isKo(b)) n += 2;
+  for(const m of b.moods) if(a.moods.includes(m)) n += 1;
+  for(const c of b.scenes) if(a.scenes.includes(c)) n += 1;
+  const d = Math.abs(a.year-b.year); if(d<=3) n += 2; else if(d<=8) n += 1;
+  return n;
+}
 
 const store = {
   get(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } },
@@ -133,7 +169,7 @@ function buildChips(){
       const b = document.createElement("button");
       b.type="button"; b.className="chip"; b.textContent=o;
       b.setAttribute("aria-pressed", state[name].has(o));
-      b.onclick = () => { state[name].has(o)?state[name].delete(o):state[name].add(o); state.pick=null; b.setAttribute("aria-pressed",state[name].has(o)); render(); };
+      b.onclick = () => { state[name].has(o)?state[name].delete(o):state[name].add(o); state.pick=null; state.similar=null; b.setAttribute("aria-pressed",state[name].has(o)); render(); };
       box.appendChild(b);
     }
   }
@@ -158,8 +194,19 @@ function score(s){
 }
 
 function current(){
+  if(state.similar!==null){
+    const base = SONGS[state.similar];
+    return SONGS.filter(s=>s!==base).map(s=>[s,simScore(base,s)]).filter(x=>x[1]>=5)
+      .sort((x,y)=>y[1]-x[1] || SRC_ORDER.indexOf(x[0].src)-SRC_ORDER.indexOf(y[0].src) || x[0].id-y[0].id).slice(0,300).map(x=>x[0]);
+  }
   let list = SONGS.filter(matches);
   if(state.tab==="fav") list = list.filter(s=>favs.has(favKey(s)));
+  if(state.tab==="then"){
+    if(!state.birth) return [];
+    const [,lo,hi] = AGES[state.age];
+    list = list.filter(s=>s.year>=state.birth+lo && s.year<=state.birth+hi);
+    return list.sort((a,b)=>score(b)-score(a) || a.year-b.year || SRC_ORDER.indexOf(a.src)-SRC_ORDER.indexOf(b.src) || rankOf(a)-rankOf(b) || a.id-b.id);
+  }
   return list.sort((a,b)=>score(b)-score(a) || SRC_ORDER.indexOf(a.src)-SRC_ORDER.indexOf(b.src) || a.id-b.id);
 }
 
@@ -168,13 +215,14 @@ function esc(t){ return String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",
 function card(s){
   const fav = favs.has(favKey(s));
   const url = "https://www.youtube.com/results?search_query="+encodeURIComponent(s.artist+" "+s.title);
-  const tags = [s.genre, s.year+"년", ...s.moods, ...s.scenes].map(t=>`<span class="tag">${esc(t)}</span>`).join("");
+  const age = state.tab==="then" && state.similar===null && state.birth ? `<span class="tag age">${s.year-state.birth}살 때</span>` : "";
+  const tags = age + [s.genre, s.year+"년", ...s.moods, ...s.scenes].map(t=>`<span class="tag">${esc(t)}</span>`).join("");
   return `<article class="card${state.pick===s.id?" pick":""}">
     <div class="top"><div><div class="title">${esc(s.title)}</div><div class="artist">${esc(s.artist)}</div></div>
     <button class="fav" type="button" data-id="${s.id}" aria-pressed="${fav}" aria-label="즐겨찾기">${fav?"★":"☆"}</button></div>
     <p class="note${s.note.startsWith("차트 ·")?" src":""}">${esc(s.note)}</p>
     <div class="tags">${tags}</div>
-    <a class="listen" href="${url}" target="_blank" rel="noopener">▶ 듣기</a>
+    <div class="actions"><a class="listen" href="${url}" target="_blank" rel="noopener">▶ 듣기</a><button class="linkbtn sim" type="button" data-id="${s.id}">비슷한 곡 →</button></div>
   </article>`;
 }
 
@@ -183,30 +231,66 @@ function render(keepLimit){
   let list = current();
   if(state.pick!==null){ const p=list.find(s=>s.id===state.pick); if(p) list=[p, ...list.filter(s=>s!==p)]; else state.pick=null; }
   const grid = document.getElementById("grid");
-  document.getElementById("count").textContent = state.pick!==null ? "🎲 이 곡 어때요? (아래는 나머지 추천)" : `${list.length}곡`;
+  const simOn = state.similar!==null;
+  document.getElementById("simbar").hidden = !simOn;
+  document.getElementById("thenPanel").hidden = simOn || state.tab!=="then";
+  if(simOn){ const b=SONGS[state.similar]; document.getElementById("simText").innerHTML = `<b>${esc(b.title)}</b> · ${esc(b.artist)}와(과) 비슷한 곡 (같은 가수, 장르, 분위기, 시대 순)`; }
+  if(state.tab==="then") renderThen();
+  document.getElementById("count").textContent = state.pick!==null ? "🎲 이 곡 어때요? (아래는 나머지 추천)" : `${list.length.toLocaleString("ko-KR")}곡`;
   const more = document.getElementById("moreBtn");
   more.hidden = list.length <= state.limit;
   more.textContent = `더 보기 (${Math.min(PAGE, list.length-state.limit)}곡 / 남은 ${list.length-state.limit}곡)`;
   grid.innerHTML = list.length ? list.slice(0, state.limit).map(card).join("") :
-    `<div class="empty">${state.tab==="fav"?"아직 즐겨찾기한 곡이 없어요. ☆를 눌러 저장해 보세요.":"조건에 맞는 곡이 없어요. 필터를 조금 풀어 보세요."}</div>`;
+    `<div class="empty">${emptyText()}</div>`;
+}
+
+function emptyText(){
+  if(state.similar!==null) return "비슷한 곡을 찾지 못했어요.";
+  if(state.tab==="fav") return "아직 즐겨찾기한 곡이 없어요. ☆를 눌러 저장해 보세요.";
+  if(state.tab==="then" && !state.birth) return "태어난 해를 넣어 주세요. 예: 1988";
+  if(state.tab==="then") return "이 나이대에는 조건에 맞는 곡이 없어요. 다른 나이대를 고르거나 필터를 풀어 보세요.";
+  return "조건에 맞는 곡이 없어요. 필터를 조금 풀어 보세요.";
+}
+
+function renderThen(){
+  const box = document.getElementById("ages");
+  box.innerHTML = "";
+  AGES.forEach(([name,lo,hi],i)=>{
+    const b = document.createElement("button");
+    b.type="button"; b.className="chip"; b.setAttribute("aria-pressed", state.age===i);
+    b.textContent = state.birth ? `${name} (${state.birth+lo}~${state.birth+hi})` : name;
+    b.onclick = () => { state.age=i; state.pick=null; store.set("music.age",i); render(); };
+    box.appendChild(b);
+  });
 }
 
 document.getElementById("grid").addEventListener("click",e=>{
+  const sim = e.target.closest(".sim");
+  if(sim){ state.similar=+sim.dataset.id; state.pick=null; render(); window.scrollTo({top:document.querySelector(".tabs").offsetTop-8,behavior:"smooth"}); return; }
   const b = e.target.closest(".fav"); if(!b) return;
   const k = favKey(SONGS[+b.dataset.id]);
   favs.has(k)?favs.delete(k):favs.add(k);
   store.set("music.favs",[...favs]); render(true);
 });
 document.getElementById("moreBtn").onclick = () => { state.limit += PAGE; render(true); };
-document.getElementById("q").addEventListener("input",e=>{ state.q=e.target.value; state.pick=null; render(); });
+document.getElementById("q").addEventListener("input",e=>{ state.q=e.target.value; state.pick=null; state.similar=null; render(); });
 document.getElementById("pickBtn").onclick = () => {
   const list = current(); if(!list.length){ state.pick=null; render(); return; }
   const top = score(list[0]); const pool = list.filter(s=>score(s)===top);
   state.pick = pool[Math.floor(Math.random()*pool.length)].id; render(); window.scrollTo({top:document.querySelector(".tabs").offsetTop-8,behavior:"smooth"});
 };
-document.getElementById("resetBtn").onclick = () => { for(const k of Object.keys(FILTERS)) state[k].clear(); state.q=""; state.pick=null; document.getElementById("q").value=""; buildChips(); render(); };
+document.getElementById("resetBtn").onclick = () => { for(const k of Object.keys(FILTERS)) state[k].clear(); state.q=""; state.pick=null; state.similar=null; document.getElementById("q").value=""; buildChips(); render(); };
+document.getElementById("simClose").onclick = () => { state.similar=null; render(); };
+const birthIn = document.getElementById("birth");
+birthIn.addEventListener("input", () => {
+  const y = parseInt(birthIn.value, 10);
+  state.birth = y>=1930 && y<=2025 ? y : null; state.pick=null;
+  store.set("music.birth", state.birth); render();
+});
+state.birth = store.get("music.birth", null); state.age = store.get("music.age", 1);
+if(state.birth) birthIn.value = state.birth;
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
-  state.tab=t.dataset.tab; state.pick=null;
+  state.tab=t.dataset.tab; state.pick=null; state.similar=null;
   document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x===t)); render();
 });
 const root = document.documentElement;
