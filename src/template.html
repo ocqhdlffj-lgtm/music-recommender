@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>오늘의 음악</title>
+<style>
+:root{
+  --bg:#f7f5f0; --surface:#ffffff; --ink:#1d1b18; --muted:#6b665d; --line:#e4dfd4;
+  --accent:#c2410c; --accent-soft:#fde8dc; --chip:#efebe2; --star:#d97706;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#161513; --surface:#211f1c; --ink:#f1ede6; --muted:#a39d92; --line:#36332e;
+    --accent:#fb923c; --accent-soft:#3a2416; --chip:#2c2a26; --star:#fbbf24;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#161513; --surface:#211f1c; --ink:#f1ede6; --muted:#a39d92; --line:#36332e;
+  --accent:#fb923c; --accent-soft:#3a2416; --chip:#2c2a26; --star:#fbbf24;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;line-height:1.55}
+.wrap{max-width:960px;margin:0 auto;padding:28px 16px 64px}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+h1{margin:0;font-size:28px;letter-spacing:-.02em}
+.sub{margin:4px 0 0;color:var(--muted);font-size:14px}
+.theme{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:13px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:20px}
+.group{margin-bottom:14px}
+.group:last-child{margin-bottom:0}
+.label{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid transparent;background:var(--chip);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:14px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input[type=search]{flex:1;min-width:180px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:9px 12px;font-size:15px}
+.btn{border:0;background:var(--accent);color:#fff;border-radius:10px;padding:9px 14px;font-size:14px;font-weight:700;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);font-weight:500}
+.tabs{display:flex;gap:4px;margin-top:22px;border-bottom:1px solid var(--line)}
+.tab{background:none;border:0;color:var(--muted);padding:8px 12px;font-size:15px;cursor:pointer;border-bottom:2px solid transparent}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:700}
+.count{color:var(--muted);font-size:13px;margin:12px 2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.card.pick{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.top{display:flex;justify-content:space-between;gap:8px}
+.title{font-weight:800;font-size:17px;letter-spacing:-.01em}
+.artist{color:var(--muted);font-size:14px}
+.fav{background:none;border:0;font-size:20px;cursor:pointer;color:var(--muted);line-height:1;padding:0 2px}
+.fav[aria-pressed="true"]{color:var(--star)}
+.note{font-size:14px;margin:2px 0}
+.tags{display:flex;flex-wrap:wrap;gap:4px}
+.tag{font-size:12px;background:var(--chip);color:var(--muted);border-radius:6px;padding:2px 7px}
+.listen{margin-top:auto;font-size:13px;color:var(--accent);text-decoration:none;font-weight:700}
+.empty{color:var(--muted);text-align:center;padding:40px 0}
+footer{margin-top:40px;color:var(--muted);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>🎧 오늘의 음악</h1>
+      <p class="sub">기분과 상황을 고르면 어울리는 곡을 골라 드려요.</p>
+    </div>
+    <button class="theme" id="themeBtn" type="button">테마 전환</button>
+  </header>
+
+  <section class="panel" aria-label="필터">
+    <div class="group"><div class="label">지금 기분</div><div class="chips" id="f-mood"></div></div>
+    <div class="group"><div class="label">상황</div><div class="chips" id="f-scene"></div></div>
+    <div class="group"><div class="label">장르</div><div class="chips" id="f-genre"></div></div>
+    <div class="group"><div class="label">시대</div><div class="chips" id="f-era"></div></div>
+    <div class="group row">
+      <input type="search" id="q" placeholder="곡명·가수 검색">
+      <button class="btn" id="pickBtn" type="button">🎲 한 곡만 골라줘</button>
+      <button class="btn ghost" id="resetBtn" type="button">초기화</button>
+    </div>
+  </section>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-tab="all">추천 목록</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="fav">★ 내 즐겨찾기</button>
+  </div>
+  <div class="count" id="count"></div>
+  <div class="grid" id="grid"></div>
+
+  <footer>‘듣기’는 유튜브 검색 결과로 연결돼요. 즐겨찾기는 이 브라우저에만 저장됩니다.</footer>
+</div>
+
+<script>
+// [제목, 가수, 연도, 장르, 기분[], 상황[], 한 줄 소개] — build.py가 data/songs.txt로 채움
+const SONGS = /*__SONGS__*/[].map(([title,artist,year,genre,moods,scenes,note],i)=>({id:i,title,artist,year,genre,moods,scenes,note,era:eraOf(year)}));
+
+function eraOf(y){ if(y<1970) return "~60년대"; if(y<2000) return `${String(y).slice(2,3)}0년대`; if(y<2010) return "2000년대"; if(y<2020) return "2010년대"; return "2020년대"; }
+
+const uniq = (arr) => [...new Set(arr)];
+const ERA_ORDER = ["~60년대","70년대","80년대","90년대","2000년대","2010년대","2020년대"];
+const FILTERS = {
+  mood:  {key:"moods",  opts:["신남","잔잔","위로","설렘","그리움"]},
+  scene: {key:"scenes", opts:["운동","드라이브","출근길","공부·작업","비 오는 날","잠들기 전"]},
+  genre: {key:"genre",  opts:uniq(SONGS.map(s=>s.genre))},
+  era:   {key:"era",    opts:ERA_ORDER.filter(e=>SONGS.some(s=>s.era===e))},
+};
+const state = {mood:new Set(),scene:new Set(),genre:new Set(),era:new Set(),q:"",tab:"all",pick:null};
+
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} },
+};
+const favKey = (s) => `${s.title}|${s.artist}`;
+let favs = new Set(store.get("music.favs",[]));
+
+function buildChips(){
+  for(const [name,f] of Object.entries(FILTERS)){
+    const box = document.getElementById("f-"+name);
+    box.innerHTML = "";
+    for(const o of f.opts){
+      const b = document.createElement("button");
+      b.type="button"; b.className="chip"; b.textContent=o;
+      b.setAttribute("aria-pressed", state[name].has(o));
+      b.onclick = () => { state[name].has(o)?state[name].delete(o):state[name].add(o); state.pick=null; b.setAttribute("aria-pressed",state[name].has(o)); render(); };
+      box.appendChild(b);
+    }
+  }
+}
+
+function matches(s){
+  for(const [name,f] of Object.entries(FILTERS)){
+    const sel = state[name]; if(!sel.size) continue;
+    const v = s[f.key];
+    if(Array.isArray(v) ? !v.some(x=>sel.has(x)) : !sel.has(v)) return false;
+  }
+  const q = state.q.trim().toLowerCase();
+  if(q && !(s.title+" "+s.artist).toLowerCase().includes(q)) return false;
+  return true;
+}
+
+// 고른 기분·상황과 겹치는 태그가 많을수록 위로
+function score(s){
+  let n=0; for(const m of s.moods) if(state.mood.has(m)) n++;
+  for(const c of s.scenes) if(state.scene.has(c)) n++;
+  return n;
+}
+
+function current(){
+  let list = SONGS.filter(matches);
+  if(state.tab==="fav") list = list.filter(s=>favs.has(favKey(s)));
+  return list.sort((a,b)=>score(b)-score(a) || a.id-b.id);
+}
+
+function esc(t){ return String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+function card(s){
+  const fav = favs.has(favKey(s));
+  const url = "https://www.youtube.com/results?search_query="+encodeURIComponent(s.artist+" "+s.title);
+  const tags = [s.genre, s.year+"년", ...s.moods, ...s.scenes].map(t=>`<span class="tag">${esc(t)}</span>`).join("");
+  return `<article class="card${state.pick===s.id?" pick":""}">
+    <div class="top"><div><div class="title">${esc(s.title)}</div><div class="artist">${esc(s.artist)}</div></div>
+    <button class="fav" type="button" data-id="${s.id}" aria-pressed="${fav}" aria-label="즐겨찾기">${fav?"★":"☆"}</button></div>
+    <p class="note">${esc(s.note)}</p>
+    <div class="tags">${tags}</div>
+    <a class="listen" href="${url}" target="_blank" rel="noopener">▶ 듣기</a>
+  </article>`;
+}
+
+function render(){
+  let list = current();
+  if(state.pick!==null){ const p=list.find(s=>s.id===state.pick); if(p) list=[p, ...list.filter(s=>s!==p)]; else state.pick=null; }
+  const grid = document.getElementById("grid");
+  document.getElementById("count").textContent = state.pick!==null ? "🎲 이 곡 어때요? (아래는 나머지 추천)" : `${list.length}곡`;
+  grid.innerHTML = list.length ? list.map(card).join("") :
+    `<div class="empty">${state.tab==="fav"?"아직 즐겨찾기한 곡이 없어요. ☆를 눌러 저장해 보세요.":"조건에 맞는 곡이 없어요. 필터를 조금 풀어 보세요."}</div>`;
+}
+
+document.getElementById("grid").addEventListener("click",e=>{
+  const b = e.target.closest(".fav"); if(!b) return;
+  const k = favKey(SONGS[+b.dataset.id]);
+  favs.has(k)?favs.delete(k):favs.add(k);
+  store.set("music.favs",[...favs]); render();
+});
+document.getElementById("q").addEventListener("input",e=>{ state.q=e.target.value; state.pick=null; render(); });
+document.getElementById("pickBtn").onclick = () => {
+  const list = current(); if(!list.length){ state.pick=null; render(); return; }
+  const top = score(list[0]); const pool = list.filter(s=>score(s)===top);
+  state.pick = pool[Math.floor(Math.random()*pool.length)].id; render(); window.scrollTo({top:document.querySelector(".tabs").offsetTop-8,behavior:"smooth"});
+};
+document.getElementById("resetBtn").onclick = () => { for(const k of Object.keys(FILTERS)) state[k].clear(); state.q=""; state.pick=null; document.getElementById("q").value=""; buildChips(); render(); };
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+  state.tab=t.dataset.tab; state.pick=null;
+  document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x===t)); render();
+});
+const root = document.documentElement;
+const savedTheme = store.get("music.theme",null); if(savedTheme) root.dataset.theme=savedTheme;
+document.getElementById("themeBtn").onclick = () => {
+  const dark = root.dataset.theme ? root.dataset.theme==="dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme = dark?"light":"dark"; store.set("music.theme",root.dataset.theme);
+};
+
+buildChips(); render();
+</script>
+</body>
+</html>
