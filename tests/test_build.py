@@ -21,6 +21,21 @@ class LoadSongs(unittest.TestCase):
         for c in build.SCENES:
             self.assertGreaterEqual(sum(c in s[5] for s in songs), 5, c)
 
+    def test_chart_data_is_valid(self):
+        chart = build.load_songs(build.FILES[1])
+        self.assertGreaterEqual(len(chart), 5000)
+        self.assertTrue(all(s[6].startswith("차트 · ") for s in chart))
+        # 직접 고른 곡과 겹치면 직접 고른 쪽이 남음
+        allsongs = build.load_all()
+        self.assertEqual(len(allsongs), len({(s[0].lower(), s[1].lower()) for s in allsongs}))
+        self.assertGreater(len(allsongs), 5000)
+
+    def test_load_all_prefers_first_file(self):
+        a = write("같은곡|가수|2020|팝|신남|운동|직접 쓴 소개\n")
+        b = write("같은곡|가수|2020|팝|잔잔|운동|차트 · 출처\n다른곡|가수|2021|팝|신남|운동|차트 · 출처\n")
+        songs = build.load_all([a, b])
+        self.assertEqual([s[6] for s in songs], ["직접 쓴 소개", "차트 · 출처"])
+
     def test_parses_line(self):
         p = write("# 주석\n\n제목|가수|2020|팝|신남,설렘|운동|소개\n")
         self.assertEqual(build.load_songs(p), [["제목", "가수", 2020, "팝", ["신남", "설렘"], ["운동"], "소개"]])
@@ -49,7 +64,7 @@ class Render(unittest.TestCase):
         self.assertEqual(json.loads(payload)[0][0], "</script>")
 
     def test_template_has_one_placeholder(self):
-        self.assertIn("const SONGS =", build.render(build.load_songs()))
+        self.assertIn("const SONGS =", build.render(build.load_all()))
 
 
 if __name__ == "__main__":

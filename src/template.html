@@ -52,9 +52,11 @@ input[type=search]{flex:1;min-width:180px;border:1px solid var(--line);backgroun
 .fav{background:none;border:0;font-size:20px;cursor:pointer;color:var(--muted);line-height:1;padding:0 2px}
 .fav[aria-pressed="true"]{color:var(--star)}
 .note{font-size:14px;margin:2px 0}
+.note.src{color:var(--muted);font-size:13px}
 .tags{display:flex;flex-wrap:wrap;gap:4px}
 .tag{font-size:12px;background:var(--chip);color:var(--muted);border-radius:6px;padding:2px 7px}
 .listen{margin-top:auto;font-size:13px;color:var(--accent);text-decoration:none;font-weight:700}
+.more{display:flex;justify-content:center;margin-top:16px}
 .empty{color:var(--muted);text-align:center;padding:40px 0}
 footer{margin-top:40px;color:var(--muted);font-size:12px;text-align:center}
 </style>
@@ -64,7 +66,7 @@ footer{margin-top:40px;color:var(--muted);font-size:12px;text-align:center}
   <header>
     <div>
       <h1>🎧 오늘의 음악</h1>
-      <p class="sub">기분과 상황을 고르면 어울리는 곡을 골라 드려요.</p>
+      <p class="sub">기분과 상황을 고르면 <span id="total"></span>곡 중에서 어울리는 노래를 골라 드려요.</p>
     </div>
     <button class="theme" id="themeBtn" type="button">테마 전환</button>
   </header>
@@ -74,6 +76,7 @@ footer{margin-top:40px;color:var(--muted);font-size:12px;text-align:center}
     <div class="group"><div class="label">상황</div><div class="chips" id="f-scene"></div></div>
     <div class="group"><div class="label">장르</div><div class="chips" id="f-genre"></div></div>
     <div class="group"><div class="label">시대</div><div class="chips" id="f-era"></div></div>
+    <div class="group"><div class="label">목록</div><div class="chips" id="f-src"></div></div>
     <div class="group row">
       <input type="search" id="q" placeholder="곡명·가수 검색">
       <button class="btn" id="pickBtn" type="button">🎲 한 곡만 골라줘</button>
@@ -87,25 +90,33 @@ footer{margin-top:40px;color:var(--muted);font-size:12px;text-align:center}
   </div>
   <div class="count" id="count"></div>
   <div class="grid" id="grid"></div>
+  <div class="more"><button class="btn ghost" id="moreBtn" type="button" hidden>더 보기</button></div>
 
   <footer>‘듣기’는 유튜브 검색 결과로 연결돼요. 즐겨찾기는 이 브라우저에만 저장됩니다.</footer>
 </div>
 
 <script>
 // [제목, 가수, 연도, 장르, 기분[], 상황[], 한 줄 소개] — build.py가 data/songs.txt로 채움
-const SONGS = /*__SONGS__*/[].map(([title,artist,year,genre,moods,scenes,note],i)=>({id:i,title,artist,year,genre,moods,scenes,note,era:eraOf(year)}));
+const SONGS = /*__SONGS__*/[].map(([title,artist,year,genre,moods,scenes,note],i)=>({id:i,title,artist,year,genre,moods,scenes,note,era:eraOf(year),src:srcOf(note)}));
+
+// 직접 고른 곡이 먼저, 차트 곡은 출처 문구로 구분
+function srcOf(note){ return note.startsWith("차트 · 빌보드") ? "빌보드 연말 차트" : note.startsWith("차트 · 가온") ? "한국 차트 1위곡" : "직접 고른 곡"; }
+const SRC_ORDER = ["직접 고른 곡","한국 차트 1위곡","빌보드 연말 차트"];
 
 function eraOf(y){ if(y<1970) return "~60년대"; if(y<2000) return `${String(y).slice(2,3)}0년대`; if(y<2010) return "2000년대"; if(y<2020) return "2010년대"; return "2020년대"; }
 
 const uniq = (arr) => [...new Set(arr)];
+const GENRE_ORDER = ["발라드","K-pop","인디/밴드","포크","록","팝","R&B/소울","댄스/일렉트로닉","힙합","컨트리","재즈","J-pop","클래식/뉴에이지"];
 const ERA_ORDER = ["~60년대","70년대","80년대","90년대","2000년대","2010년대","2020년대"];
 const FILTERS = {
   mood:  {key:"moods",  opts:["신남","잔잔","위로","설렘","그리움"]},
   scene: {key:"scenes", opts:["운동","드라이브","출근길","공부·작업","비 오는 날","잠들기 전"]},
-  genre: {key:"genre",  opts:uniq(SONGS.map(s=>s.genre))},
+  genre: {key:"genre",  opts:GENRE_ORDER.filter(g=>SONGS.some(s=>s.genre===g))},
   era:   {key:"era",    opts:ERA_ORDER.filter(e=>SONGS.some(s=>s.era===e))},
+  src:   {key:"src",    opts:SRC_ORDER},
 };
-const state = {mood:new Set(),scene:new Set(),genre:new Set(),era:new Set(),q:"",tab:"all",pick:null};
+const PAGE = 60;
+const state = {mood:new Set(),scene:new Set(),genre:new Set(),era:new Set(),src:new Set(),q:"",tab:"all",pick:null,limit:PAGE};
 
 const store = {
   get(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } },
@@ -149,7 +160,7 @@ function score(s){
 function current(){
   let list = SONGS.filter(matches);
   if(state.tab==="fav") list = list.filter(s=>favs.has(favKey(s)));
-  return list.sort((a,b)=>score(b)-score(a) || a.id-b.id);
+  return list.sort((a,b)=>score(b)-score(a) || SRC_ORDER.indexOf(a.src)-SRC_ORDER.indexOf(b.src) || a.id-b.id);
 }
 
 function esc(t){ return String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
@@ -161,18 +172,22 @@ function card(s){
   return `<article class="card${state.pick===s.id?" pick":""}">
     <div class="top"><div><div class="title">${esc(s.title)}</div><div class="artist">${esc(s.artist)}</div></div>
     <button class="fav" type="button" data-id="${s.id}" aria-pressed="${fav}" aria-label="즐겨찾기">${fav?"★":"☆"}</button></div>
-    <p class="note">${esc(s.note)}</p>
+    <p class="note${s.note.startsWith("차트 ·")?" src":""}">${esc(s.note)}</p>
     <div class="tags">${tags}</div>
     <a class="listen" href="${url}" target="_blank" rel="noopener">▶ 듣기</a>
   </article>`;
 }
 
-function render(){
+function render(keepLimit){
+  if(!keepLimit) state.limit = PAGE;
   let list = current();
   if(state.pick!==null){ const p=list.find(s=>s.id===state.pick); if(p) list=[p, ...list.filter(s=>s!==p)]; else state.pick=null; }
   const grid = document.getElementById("grid");
   document.getElementById("count").textContent = state.pick!==null ? "🎲 이 곡 어때요? (아래는 나머지 추천)" : `${list.length}곡`;
-  grid.innerHTML = list.length ? list.map(card).join("") :
+  const more = document.getElementById("moreBtn");
+  more.hidden = list.length <= state.limit;
+  more.textContent = `더 보기 (${Math.min(PAGE, list.length-state.limit)}곡 / 남은 ${list.length-state.limit}곡)`;
+  grid.innerHTML = list.length ? list.slice(0, state.limit).map(card).join("") :
     `<div class="empty">${state.tab==="fav"?"아직 즐겨찾기한 곡이 없어요. ☆를 눌러 저장해 보세요.":"조건에 맞는 곡이 없어요. 필터를 조금 풀어 보세요."}</div>`;
 }
 
@@ -180,8 +195,9 @@ document.getElementById("grid").addEventListener("click",e=>{
   const b = e.target.closest(".fav"); if(!b) return;
   const k = favKey(SONGS[+b.dataset.id]);
   favs.has(k)?favs.delete(k):favs.add(k);
-  store.set("music.favs",[...favs]); render();
+  store.set("music.favs",[...favs]); render(true);
 });
+document.getElementById("moreBtn").onclick = () => { state.limit += PAGE; render(true); };
 document.getElementById("q").addEventListener("input",e=>{ state.q=e.target.value; state.pick=null; render(); });
 document.getElementById("pickBtn").onclick = () => {
   const list = current(); if(!list.length){ state.pick=null; render(); return; }
@@ -200,6 +216,7 @@ document.getElementById("themeBtn").onclick = () => {
   root.dataset.theme = dark?"light":"dark"; store.set("music.theme",root.dataset.theme);
 };
 
+document.getElementById("total").textContent = SONGS.length.toLocaleString("ko-KR");
 buildChips(); render();
 </script>
 </body>
