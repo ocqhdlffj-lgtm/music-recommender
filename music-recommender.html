@@ -69,6 +69,17 @@ input[type=search]{flex:1;min-width:180px;border:1px solid var(--line);backgroun
 .linkbtn{background:none;border:0;padding:0;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer}
 .linkbtn:hover{color:var(--accent)}
 .linkbtn:focus-visible{color:var(--accent);outline:2px solid var(--accent);outline-offset:2px}
+.editor{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px dashed var(--line);border-radius:10px}
+.editor .label{margin:0}
+.editor .chip{font-size:13px;padding:4px 10px}
+.editor .row{gap:8px}
+.editor .btn{padding:6px 12px;font-size:13px}
+.edmsg{margin:0;color:var(--accent);font-size:12px}
+.tag.mine{background:var(--accent-soft);color:var(--accent)}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.tools .btn{padding:6px 12px;font-size:13px}
+.toast{color:var(--accent);font-size:13px;font-weight:700}
+.copybox{width:100%;min-height:120px;margin-top:8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);padding:8px;font-size:13px}
 .tag.age{background:var(--accent-soft);color:var(--accent);font-weight:700}
 footer{margin-top:40px;color:var(--muted);font-size:12px;text-align:center}
 </style>
@@ -107,11 +118,13 @@ footer{margin-top:40px;color:var(--muted);font-size:12px;text-align:center}
     <p class="hint">태어난 해를 넣으면 그 나이 때 1위곡과 연말 차트 곡을 연도순으로 보여 드려요. 위의 기분·장르 필터도 함께 적용돼요.</p>
   </div>
   <div class="simbar" id="simbar" hidden><span id="simText"></span><button class="btn ghost" id="simClose" type="button">← 목록으로 돌아가기</button></div>
+  <div class="tools" id="tools" hidden></div>
+  <textarea class="copybox" id="copyBox" readonly hidden aria-label="복사할 내용"></textarea>
   <div class="count" id="count"></div>
   <div class="grid" id="grid"></div>
   <div class="more"><button class="btn ghost" id="moreBtn" type="button" hidden>더 보기</button></div>
 
-  <footer>‘듣기’는 유튜브 검색 결과로 연결돼요. 즐겨찾기는 이 브라우저에만 저장됩니다.</footer>
+  <footer>‘듣기’는 유튜브 검색 결과로 연결돼요. 즐겨찾기와 고친 태그는 이 브라우저에만 저장됩니다.</footer>
 </div>
 
 <script>
@@ -135,7 +148,7 @@ const FILTERS = {
   src:   {key:"src",    opts:SRC_ORDER},
 };
 const PAGE = 60;
-const state = {mood:new Set(),scene:new Set(),genre:new Set(),era:new Set(),src:new Set(),q:"",tab:"all",pick:null,limit:PAGE,similar:null,birth:null,age:1};
+const state = {mood:new Set(),scene:new Set(),genre:new Set(),era:new Set(),src:new Set(),q:"",tab:"all",pick:null,limit:PAGE,similar:null,birth:null,age:1,editing:null,draft:null,edmsg:""};
 // 그때 그 노래: [이름, 시작 나이, 끝 나이]
 const AGES = [["10대 초반",13,15],["10대 후반",16,19],["20대 초반",20,24],["20대 후반",25,29],["30대",30,39]];
 const rankOf = (s) => { const m = s.note.match(/(\d+)위$/); return m ? +m[1] : 0; };
@@ -160,6 +173,11 @@ const store = {
 };
 const favKey = (s) => `${s.title}|${s.artist}`;
 let favs = new Set(store.get("music.favs",[]));
+// 고친 태그: { "제목|가수": {m:[기분], s:[상황]} } — 원래 태그는 orig에 보관
+let edits = store.get("music.edits", {});
+for(const s of SONGS){ s.orig = {moods:s.moods, scenes:s.scenes}; const e = edits[favKey(s)]; if(e){ s.moods=e.m; s.scenes=e.s; } }
+const MOOD_OPTS = ["신남","잔잔","위로","설렘","그리움"];
+const SCENE_OPTS = ["운동","드라이브","출근길","공부·작업","비 오는 날","잠들기 전"];
 
 function buildChips(){
   for(const [name,f] of Object.entries(FILTERS)){
@@ -216,13 +234,15 @@ function card(s){
   const fav = favs.has(favKey(s));
   const url = "https://www.youtube.com/results?search_query="+encodeURIComponent(s.artist+" "+s.title);
   const age = state.tab==="then" && state.similar===null && state.birth ? `<span class="tag age">${s.year-state.birth}살 때</span>` : "";
-  const tags = age + [s.genre, s.year+"년", ...s.moods, ...s.scenes].map(t=>`<span class="tag">${esc(t)}</span>`).join("");
+  const mine = edits[favKey(s)] ? `<span class="tag mine">✎ 고친 태그</span>` : "";
+  const tags = age + mine + [s.genre, s.year+"년", ...s.moods, ...s.scenes].map(t=>`<span class="tag">${esc(t)}</span>`).join("");
+  const body = state.editing===s.id ? editorHtml(s) : `<div class="tags">${tags}</div>`;
   return `<article class="card${state.pick===s.id?" pick":""}">
     <div class="top"><div><div class="title">${esc(s.title)}</div><div class="artist">${esc(s.artist)}</div></div>
     <button class="fav" type="button" data-id="${s.id}" aria-pressed="${fav}" aria-label="즐겨찾기">${fav?"★":"☆"}</button></div>
     <p class="note${s.note.startsWith("차트 ·")?" src":""}">${esc(s.note)}</p>
-    <div class="tags">${tags}</div>
-    <div class="actions"><a class="listen" href="${url}" target="_blank" rel="noopener">▶ 듣기</a><button class="linkbtn sim" type="button" data-id="${s.id}">비슷한 곡 →</button></div>
+    ${body}
+    <div class="actions"><a class="listen" href="${url}" target="_blank" rel="noopener">▶ 듣기</a><button class="linkbtn sim" type="button" data-id="${s.id}">비슷한 곡 →</button><button class="linkbtn edit" type="button" data-id="${s.id}">태그 고치기</button></div>
   </article>`;
 }
 
@@ -236,6 +256,7 @@ function render(keepLimit){
   document.getElementById("thenPanel").hidden = simOn || state.tab!=="then";
   if(simOn){ const b=SONGS[state.similar]; document.getElementById("simText").innerHTML = `<b>${esc(b.title)}</b> · ${esc(b.artist)}와(과) 비슷한 곡 (같은 가수, 장르, 분위기, 시대 순)`; }
   if(state.tab==="then") renderThen();
+  renderTools();
   document.getElementById("count").textContent = state.pick!==null ? "🎲 이 곡 어때요? (아래는 나머지 추천)" : `${list.length.toLocaleString("ko-KR")}곡`;
   const more = document.getElementById("moreBtn");
   more.hidden = list.length <= state.limit;
@@ -264,7 +285,66 @@ function renderThen(){
   });
 }
 
+function editorHtml(s){
+  const chip = (kind, v, on) => `<button class="chip ed-chip" type="button" data-kind="${kind}" data-v="${esc(v)}" aria-pressed="${on}">${esc(v)}</button>`;
+  return `<div class="editor">
+    <div class="label">기분</div><div class="chips">${MOOD_OPTS.map(v=>chip("m",v,state.draft.m.has(v))).join("")}</div>
+    <div class="label">상황</div><div class="chips">${SCENE_OPTS.map(v=>chip("s",v,state.draft.s.has(v))).join("")}</div>
+    ${state.edmsg?`<p class="edmsg">${esc(state.edmsg)}</p>`:""}
+    <div class="row"><button class="btn ed-save" type="button">저장</button><button class="btn ghost ed-cancel" type="button">취소</button>${edits[favKey(s)]?'<button class="linkbtn ed-reset" type="button">원래 태그로</button>':""}</div>
+  </div>`;
+}
+
+function renderTools(){
+  const box = document.getElementById("tools");
+  const n = Object.keys(edits).length;
+  const parts = [];
+  if(state.tab==="fav" && favs.size) parts.push(`<button class="btn ghost" id="copyFavs" type="button">즐겨찾기 ${favs.size}곡 목록 복사</button>`);
+  if(n) parts.push(`<button class="btn ghost" id="copyEdits" type="button">고친 태그 ${n}곡 복사</button>`);
+  parts.push(`<span class="toast" id="toast"></span>`);
+  box.innerHTML = parts.join("");
+  box.hidden = parts.length===1 || state.similar!==null;
+}
+
+// 복사: 클립보드가 막히면 글상자에 띄워 직접 복사하게 함
+function copyText(text, done){
+  const box = document.getElementById("copyBox");
+  const show = () => { box.hidden=false; box.value=text; box.focus(); box.select(); document.getElementById("toast").textContent="아래 글상자에서 직접 복사해 주세요."; };
+  box.hidden = true;
+  try{
+    navigator.clipboard.writeText(text).then(()=>{ document.getElementById("toast").textContent=done; }, show);
+  }catch(e){ show(); }
+}
+
+document.getElementById("tools").addEventListener("click", e=>{
+  if(e.target.id==="copyFavs"){
+    const lines = SONGS.filter(s=>favs.has(favKey(s))).map(s=>`${s.title} - ${s.artist} (${s.year})`);
+    copyText("내 즐겨찾기 ("+lines.length+"곡)\n"+lines.join("\n"), "즐겨찾기 목록을 복사했어요.");
+  }
+  if(e.target.id==="copyEdits"){
+    const lines = Object.entries(edits).map(([k,v])=>`${k}|${v.m.join(",")}|${v.s.join(",")}`);
+    copyText("# 고친 태그 (제목|가수|기분|상황)\n"+lines.join("\n"), "고친 태그를 복사했어요. 이 내용을 보내 주시면 데이터에 반영할 수 있어요.");
+  }
+});
+
 document.getElementById("grid").addEventListener("click",e=>{
+  const ed = e.target.closest(".edit");
+  if(ed){ const s=SONGS[+ed.dataset.id]; state.editing=s.id; state.edmsg=""; state.draft={m:new Set(s.moods), s:new Set(s.scenes)}; render(true); return; }
+  const ec = e.target.closest(".ed-chip");
+  if(ec){ const set = state.draft[ec.dataset.kind]; set.has(ec.dataset.v)?set.delete(ec.dataset.v):set.add(ec.dataset.v); state.edmsg=""; render(true); return; }
+  if(e.target.closest(".ed-cancel")){ state.editing=null; render(true); return; }
+  if(e.target.closest(".ed-save")){
+    const s = SONGS[state.editing];
+    if(!state.draft.m.size || !state.draft.s.size){ state.edmsg="기분과 상황을 하나 이상씩 골라 주세요."; render(true); return; }
+    const m = MOOD_OPTS.filter(v=>state.draft.m.has(v)), sc = SCENE_OPTS.filter(v=>state.draft.s.has(v));
+    const same = m.join()===s.orig.moods.join() && sc.join()===s.orig.scenes.join();
+    if(same) delete edits[favKey(s)]; else edits[favKey(s)] = {m, s:sc};
+    s.moods=m; s.scenes=sc; store.set("music.edits", edits); state.editing=null; render(true); return;
+  }
+  if(e.target.closest(".ed-reset")){
+    const s = SONGS[state.editing]; delete edits[favKey(s)]; s.moods=s.orig.moods; s.scenes=s.orig.scenes;
+    store.set("music.edits", edits); state.editing=null; render(true); return;
+  }
   const sim = e.target.closest(".sim");
   if(sim){ state.similar=+sim.dataset.id; state.pick=null; render(); window.scrollTo({top:document.querySelector(".tabs").offsetTop-8,behavior:"smooth"}); return; }
   const b = e.target.closest(".fav"); if(!b) return;
@@ -290,7 +370,7 @@ birthIn.addEventListener("input", () => {
 state.birth = store.get("music.birth", null); state.age = store.get("music.age", 1);
 if(state.birth) birthIn.value = state.birth;
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
-  state.tab=t.dataset.tab; state.pick=null; state.similar=null;
+  state.tab=t.dataset.tab; state.pick=null; state.similar=null; state.editing=null; document.getElementById("copyBox").hidden=true;
   document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x===t)); render();
 });
 const root = document.documentElement;
