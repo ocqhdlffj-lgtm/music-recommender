@@ -36,6 +36,17 @@ class LoadSongs(unittest.TestCase):
         songs = build.load_all([a, b])
         self.assertEqual([s[6] for s in songs], ["직접 쓴 소개", "차트 · 출처"])
 
+    def test_apply_edits(self):
+        songs = [["밤편지", "아이유", 2017, "발라드", ["잔잔"], ["잠들기 전"], "소개"]]
+        p = write("# 고친 태그 (제목|가수|기분|상황)\n밤편지|아이유|위로,그리움|드라이브\n")
+        self.assertEqual(build.apply_edits(songs, p), 1)
+        self.assertEqual(songs[0][4:6], [["위로", "그리움"], ["드라이브"]])
+        with self.assertRaisesRegex(AssertionError, "없는 곡"):
+            build.apply_edits(songs, write("없는노래|가수|신남|운동\n"))
+        with self.assertRaisesRegex(AssertionError, "기분"):
+            build.apply_edits(songs, write("밤편지|아이유|행복|운동\n"))
+        self.assertEqual(build.apply_edits(songs, ROOT / "no-such-file.txt"), 0)
+
     def test_parses_line(self):
         p = write("# 주석\n\n제목|가수|2020|팝|신남,설렘|운동|소개\n")
         self.assertEqual(build.load_songs(p), [["제목", "가수", 2020, "팝", ["신남", "설렘"], ["운동"], "소개"]])

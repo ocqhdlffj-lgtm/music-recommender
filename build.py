@@ -43,6 +43,26 @@ def load_all(files=FILES):
             seen.add(key); songs.append(s)
     return songs
 
+EDITS = ROOT/"data/tag_edits.txt"
+
+def apply_edits(songs, path=EDITS):
+    """화면의 '고친 태그 복사' 내용(제목|가수|기분|상황)을 붙여 넣은 파일을 곡에 덮어씀."""
+    path = pathlib.Path(path)
+    if not path.exists(): return 0
+    index = {(s[0].lower(), s[1].lower()): s for s in songs}
+    n = 0
+    for i, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if not line.strip() or line.startswith("#"): continue
+        f = [x.strip() for x in line.split("|")]
+        assert len(f) == 4, f"tag_edits.txt {i}행: 칸이 {len(f)}개 (4개여야 함)"
+        s = index.get((f[0].lower(), f[1].lower()))
+        assert s, f"tag_edits.txt {i}행: 없는 곡 {f[0]} / {f[1]}"
+        moods, scenes = f[2].split(","), f[3].split(",")
+        for x in moods: assert x in MOODS, f"tag_edits.txt {i}행: 기분 '{x}' 미등록"
+        for x in scenes: assert x in SCENES, f"tag_edits.txt {i}행: 상황 '{x}' 미등록"
+        s[4], s[5] = moods, scenes; n += 1
+    return n
+
 def render(songs, template=None):
     template = template or (ROOT/"src/template.html").read_text(encoding="utf-8")
     assert template.count(PLACEHOLDER) == 1, "template.html: 데이터 자리표시자가 정확히 1개여야 함"
@@ -52,7 +72,8 @@ def render(songs, template=None):
 
 def main(argv):
     songs = load_all()
-    print(f"{len(songs)}곡 검증 통과")
+    n = apply_edits(songs)
+    print(f"{len(songs)}곡 검증 통과" + (f", 고친 태그 {n}곡 반영" if n else ""))
     if "--check" in argv: return
     (ROOT/"music-recommender.html").write_text(render(songs), encoding="utf-8")
     print("music-recommender.html 생성")

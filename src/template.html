@@ -21,7 +21,7 @@
   --accent:#fb923c; --accent-soft:#3a2416; --chip:#2c2a26; --star:#fbbf24; color-scheme:dark;
 }
 *{box-sizing:border-box}
-[hidden]{display:none!important}
+[hidden],.qhide{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;line-height:1.55}
 .wrap{max-width:960px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
 header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
@@ -80,6 +80,21 @@ input[type=search]{flex:1;min-width:180px;border:1px solid var(--line);backgroun
 .tools .btn{padding:6px 12px;font-size:13px}
 .toast{color:var(--accent);font-size:13px;font-weight:700}
 .copybox{width:100%;min-height:120px;margin-top:8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);padding:8px;font-size:13px}
+.quiz{display:flex;flex-direction:column;gap:14px;margin-top:16px}
+.qcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.qmeta{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.qtext{margin:0;font-size:19px;font-weight:800;letter-spacing:-.01em;text-wrap:balance}
+.qsub{margin:0;color:var(--muted);font-size:14px}
+.qopts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.qopt{text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:12px 14px;font-size:15px;cursor:pointer;min-width:0}
+.qopt:hover:not(:disabled){border-color:var(--accent)}
+.qopt:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.qopt.right{border-color:#15803d;background:color-mix(in srgb,#15803d 14%,var(--bg))}
+.qopt.wrong{border-color:#b91c1c;background:color-mix(in srgb,#b91c1c 12%,var(--bg))}
+.qopt:disabled{cursor:default}
+.qfeed{margin:0;font-size:14px;font-weight:700}
+.qrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.qbig{font-size:34px;font-weight:800;font-variant-numeric:tabular-nums;margin:0}
 .tag.age{background:var(--accent-soft);color:var(--accent);font-weight:700}
 footer{margin-top:40px;color:var(--muted);font-size:12px;text-align:center}
 </style>
@@ -110,8 +125,10 @@ footer{margin-top:40px;color:var(--muted);font-size:12px;text-align:center}
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" aria-selected="true" data-tab="all">추천 목록</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="then">🕰 그때 그 노래</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="quiz">🏆 1위곡 퀴즈</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="fav">★ 내 즐겨찾기</button>
   </div>
+  <section class="quiz" id="quiz" hidden aria-live="polite"></section>
   <div class="then" id="thenPanel" hidden>
     <div class="row"><label for="birth">태어난 해</label><input type="number" id="birth" min="1930" max="2025" inputmode="numeric" placeholder="예: 1988"></div>
     <div class="chips" id="ages"></div>
@@ -256,6 +273,10 @@ function render(keepLimit){
   document.getElementById("thenPanel").hidden = simOn || state.tab!=="then";
   if(simOn){ const b=SONGS[state.similar]; document.getElementById("simText").innerHTML = `<b>${esc(b.title)}</b> · ${esc(b.artist)}와(과) 비슷한 곡 (같은 가수, 장르, 분위기, 시대 순)`; }
   if(state.tab==="then") renderThen();
+  const qOn = state.tab==="quiz" && !simOn;
+  document.getElementById("quiz").hidden = !qOn;
+  for(const id of ["count","grid","moreBtn"]) document.getElementById(id).classList.toggle("qhide", qOn);
+  if(qOn){ renderQuiz(); document.getElementById("tools").hidden = true; return; }
   renderTools();
   document.getElementById("count").textContent = state.pick!==null ? "🎲 이 곡 어때요? (아래는 나머지 추천)" : `${list.length.toLocaleString("ko-KR")}곡`;
   const more = document.getElementById("moreBtn");
@@ -284,6 +305,86 @@ function renderThen(){
     box.appendChild(b);
   });
 }
+
+// ---- 1위곡 퀴즈 ----
+// 문제 유형: (1) 이 노래가 처음 1위/차트에 오른 해는? (2) 다음 중 이 가수의 노래는?
+const QN = 10;
+const quiz = {pool:"전체", qs:[], i:0, right:0, picked:null};
+const QPOOLS = {"전체":s=>s.src!=="직접 고른 곡", "한국 1위곡":s=>s.src==="한국 차트 1위곡", "빌보드":s=>s.src==="빌보드 연말 차트"};
+const rnd = (n) => Math.floor(Math.random()*n);
+const shuffle = (a) => { for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+
+function makeYearQ(s){
+  const years = new Set([s.year]);
+  while(years.size<4){ const y = s.year + (rnd(2)?1:-1)*(1+rnd(6)); if(y>=1959 && y<=2025) years.add(y); }
+  const opts = shuffle([...years]).map(y=>({label:`${y}년`, ok:y===s.year}));
+  const what = s.src==="빌보드 연말 차트" ? "빌보드 연말 Hot 100에 처음 오른 해는?" : "음악방송·디지털 차트에서 처음 1위를 한 해는?";
+  return {song:s, text:`‘${s.title}’ (${s.artist})가 ${what}`, opts};
+}
+function makeArtistQ(s, pool){
+  const me = mainArtist(s);
+  const near = shuffle(pool.filter(x=>mainArtist(x)!==me && isKo(x)===isKo(s) && Math.abs(x.year-s.year)<=6 && x.title.toLowerCase()!==s.title.toLowerCase()));
+  const picks = []; const seen = new Set([me]);
+  for(const x of near){ const a = mainArtist(x); if(seen.has(a)) continue; seen.add(a); picks.push(x); if(picks.length===3) break; }
+  if(picks.length<3) return null;
+  const opts = shuffle([s, ...picks]).map(x=>({label:x.title, ok:x===s}));
+  return {song:s, text:`다음 중 ${s.artist}의 노래는?`, opts};
+}
+function newQuiz(){
+  const pool = SONGS.filter(QPOOLS[quiz.pool]);
+  const qs = []; const used = new Set();
+  let guard = 0;
+  while(qs.length<QN && guard++<500){
+    const s = pool[rnd(pool.length)]; if(used.has(s.id)) continue;
+    const q = rnd(2) ? makeYearQ(s) : makeArtistQ(s, pool);
+    if(!q) continue; used.add(s.id); qs.push(q);
+  }
+  Object.assign(quiz, {qs, i:0, right:0, picked:null});
+}
+function renderQuiz(){
+  const box = document.getElementById("quiz");
+  if(!quiz.qs.length) newQuiz();
+  const best = store.get("music.quizBest", 0);
+  const pools = Object.keys(QPOOLS).map(k=>`<button class="chip qpool" type="button" data-p="${k}" aria-pressed="${quiz.pool===k}">${k}</button>`).join("");
+  if(quiz.i>=quiz.qs.length){
+    const msg = quiz.right>=9 ? "차트 박사네요!" : quiz.right>=6 ? "꽤 잘 아시네요." : quiz.right>=3 ? "들어 본 노래가 많았죠?" : "새로 알게 된 노래를 들어 보세요.";
+    box.innerHTML = `<div class="chips">${pools}</div><div class="qcard"><p class="qsub">결과</p><p class="qbig">${quiz.right} / ${quiz.qs.length}</p><p class="qtext">${msg}</p><p class="qsub">최고 기록 ${best} / ${QN}</p><div class="qrow"><button class="btn" id="qAgain" type="button">새 퀴즈 10문제</button></div></div>`;
+    return;
+  }
+  const q = quiz.qs[quiz.i];
+  const opts = q.opts.map((o,k)=>{
+    let cls = "qopt";
+    if(quiz.picked!==null){ if(o.ok) cls+=" right"; else if(k===quiz.picked) cls+=" wrong"; }
+    return `<button class="${cls}" type="button" data-k="${k}" ${quiz.picked!==null?"disabled":""}>${esc(o.label)}</button>`;
+  }).join("");
+  let feed = "";
+  if(quiz.picked!==null){
+    const ok = q.opts[quiz.picked].ok, s = q.song;
+    const url = "https://www.youtube.com/results?search_query="+encodeURIComponent(s.artist+" "+s.title);
+    feed = `<p class="qfeed" style="color:${ok?"#15803d":"#b91c1c"}">${ok?"정답!":"아쉬워요."} ${esc(s.title)} · ${esc(s.artist)} · ${s.year}년</p>
+      <p class="qsub">${esc(s.note.replace("차트 · ",""))}</p>
+      <div class="qrow"><button class="btn" id="qNext" type="button">${quiz.i+1<quiz.qs.length?"다음 문제":"결과 보기"}</button><a class="listen" href="${url}" target="_blank" rel="noopener">▶ 듣기</a></div>`;
+  }
+  box.innerHTML = `<div class="chips">${pools}</div><div class="qcard">
+    <div class="qmeta"><span>${quiz.i+1} / ${quiz.qs.length}번 문제</span><span>맞힌 문제 ${quiz.right} · 최고 기록 ${best}</span></div>
+    <p class="qtext">${esc(q.text)}</p><div class="qopts">${opts}</div>${feed}</div>`;
+}
+document.getElementById("quiz").addEventListener("click", e=>{
+  const pb = e.target.closest(".qpool");
+  if(pb){ quiz.pool = pb.dataset.p; newQuiz(); renderQuiz(); return; }
+  const o = e.target.closest(".qopt");
+  if(o && quiz.picked===null){
+    quiz.picked = +o.dataset.k;
+    if(quiz.qs[quiz.i].opts[quiz.picked].ok) quiz.right++;
+    renderQuiz(); return;
+  }
+  if(e.target.id==="qNext"){
+    quiz.i++; quiz.picked=null;
+    if(quiz.i>=quiz.qs.length && quiz.right>store.get("music.quizBest",0)) store.set("music.quizBest", quiz.right);
+    renderQuiz(); return;
+  }
+  if(e.target.id==="qAgain"){ newQuiz(); renderQuiz(); }
+});
 
 function editorHtml(s){
   const chip = (kind, v, on) => `<button class="chip ed-chip" type="button" data-kind="${kind}" data-v="${esc(v)}" aria-pressed="${on}">${esc(v)}</button>`;
