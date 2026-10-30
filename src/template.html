@@ -166,8 +166,8 @@ const SAVE_PARTS = { style: document.getElementById("app-style").outerHTML, body
 const SONGS = /*__SONGS__*/[].map(([title,artist,year,genre,moods,scenes,note],i)=>({id:i,title,artist,year,genre,moods,scenes,note,era:eraOf(year),src:srcOf(note)}));
 
 // 직접 고른 곡이 먼저, 차트 곡은 출처 문구로 구분
-function srcOf(note){ return note.startsWith("차트 · 빌보드") ? "빌보드 연말 차트" : note.startsWith("차트 · ") ? "한국 차트 1위곡" : "직접 고른 곡"; }
-const SRC_ORDER = ["직접 고른 곡","한국 차트 1위곡","빌보드 연말 차트"];
+function srcOf(note){ return note.startsWith("차트 · 빌보드") ? "빌보드 연말 차트" : note.startsWith("차트 · ") ? "한국 차트 1위곡" : note.startsWith("명반 · ") ? "재즈 명반 수록곡" : "직접 고른 곡"; }
+const SRC_ORDER = ["직접 고른 곡","한국 차트 1위곡","빌보드 연말 차트","재즈 명반 수록곡"];
 
 function eraOf(y){ if(y<1970) return "~60년대"; if(y<2000) return `${String(y).slice(2,3)}0년대`; if(y<2010) return "2000년대"; if(y<2020) return "2010년대"; return "2020년대"; }
 
@@ -274,7 +274,7 @@ function card(s){
   return `<article class="card${state.pick===s.id?" pick":""}">
     <div class="top"><div><div class="title">${esc(s.title)}</div><div class="artist">${esc(s.artist)}</div></div>
     <button class="fav" type="button" data-id="${s.id}" aria-pressed="${fav}" aria-label="즐겨찾기">${fav?"★":"☆"}</button></div>
-    <p class="note${s.note.startsWith("차트 ·")?" src":""}">${esc(s.note)}</p>
+    <p class="note${/^(차트|명반) ·/.test(s.note)?" src":""}">${esc(s.note)}</p>
     ${body}
     <div class="actions"><a class="listen" href="${url}" target="_blank" rel="noopener">▶ 듣기</a><button class="linkbtn sim" type="button" data-id="${s.id}">비슷한 곡 →</button><button class="linkbtn edit" type="button" data-id="${s.id}">태그 고치기</button></div>
   </article>`;
@@ -328,7 +328,7 @@ function renderThen(){
 // 문제 유형: (1) 이 노래가 처음 1위/차트에 오른 해는? (2) 다음 중 이 가수의 노래는?
 const QN = 10;
 const quiz = {pool:"전체", qs:[], i:0, right:0, picked:null};
-const QPOOLS = {"전체":s=>s.src!=="직접 고른 곡", "한국 1위곡":s=>s.src==="한국 차트 1위곡", "빌보드":s=>s.src==="빌보드 연말 차트"};
+const QPOOLS = {"전체":s=>s.src==="한국 차트 1위곡"||s.src==="빌보드 연말 차트", "한국 1위곡":s=>s.src==="한국 차트 1위곡", "빌보드":s=>s.src==="빌보드 연말 차트"};
 const rnd = (n) => Math.floor(Math.random()*n);
 const shuffle = (a) => { for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; };
 

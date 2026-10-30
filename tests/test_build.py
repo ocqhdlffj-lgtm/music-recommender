@@ -30,6 +30,13 @@ class LoadSongs(unittest.TestCase):
         self.assertEqual(len(allsongs), len({(s[0].lower(), s[1].lower()) for s in allsongs}))
         self.assertGreater(len(allsongs), 5000)
 
+    def test_jazz_album_data_is_valid(self):
+        jazz = build.load_songs(build.FILES[2])
+        self.assertGreaterEqual(len(jazz), 1500)
+        self.assertTrue(all(s[3] == "재즈" and s[6].startswith("명반 · ") for s in jazz))
+        # 위키 문법 찌꺼기가 제목에 남지 않아야 함
+        self.assertFalse([s[0] for s in jazz if any(x in s[0] for x in ("[[", "]]", "{{", "}}", "="))])
+
     def test_load_all_prefers_first_file(self):
         a = write("같은곡|가수|2020|팝|신남|운동|직접 쓴 소개\n")
         b = write("같은곡|가수|2020|팝|잔잔|운동|차트 · 출처\n다른곡|가수|2021|팝|신남|운동|차트 · 출처\n")

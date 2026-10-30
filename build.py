@@ -11,7 +11,7 @@ MOODS = ["신남","잔잔","위로","설렘","그리움"]
 SCENES = ["운동","드라이브","출근길","공부·작업","비 오는 날","잠들기 전"]
 GENRES = ["발라드","K-pop","포크","인디/밴드","록","팝","R&B/소울","댄스/일렉트로닉","힙합","컨트리","트로트","재즈","J-pop","클래식/뉴에이지"]
 # 앞 파일이 우선: 직접 고른 곡과 겹치는 차트 곡은 건너뜀
-FILES = [ROOT/"data/songs.txt", ROOT/"data/chart_songs.txt"]
+FILES = [ROOT/"data/songs.txt", ROOT/"data/chart_songs.txt", ROOT/"data/jazz_albums.txt"]
 PLACEHOLDER = "/*__SONGS__*/[]"
 
 def load_songs(path=ROOT/"data/songs.txt"):
