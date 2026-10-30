@@ -136,3 +136,69 @@ Experience|Ludovico Einaudi|2013|클래식/뉴에이지|위로|공부·작업|�
 Kiss the Rain|이루마|2003|클래식/뉴에이지|잔잔,그리움|비 오는 날,공부·작업|빗소리와 어울리는 서정적인 피아노
 Merry Christmas Mr. Lawrence|坂本龍一 (사카모토 류이치)|1983|클래식/뉴에이지|그리움|잠들기 전|같은 이름의 영화 주제곡으로 쓰인 피아노 명곡
 人生のメリーゴーランド|久石譲 (히사이시 조)|2004|클래식/뉴에이지|설렘,그리움|공부·작업|하울의 움직이는 성의 왈츠
+Blue in Green|Miles Davis|1959|재즈|잔잔|잠들기 전,공부·작업|명반 Kind of Blue에서 가장 고요하게 흐르는 발라드
+All Blues|Miles Davis|1959|재즈|잔잔|드라이브,공부·작업|6/8박자로 느긋하게 흔들리는 모달 블루스
+'Round Midnight|Thelonious Monk|1947|재즈|그리움,잔잔|잠들기 전|자정 무렵의 쓸쓸함을 담은 재즈 스탠더드의 원형
+My Favorite Things|John Coltrane|1961|재즈|신남|공부·작업|뮤지컬 노래를 소프라노 색소폰으로 끝없이 변주
+Giant Steps|John Coltrane|1960|재즈|신남|공부·작업,운동|숨 가쁘게 조가 바뀌는 연주자들의 시험곡
+Naima|John Coltrane|1960|재즈|잔잔,위로|잠들기 전|아내에게 바친 느리고 따뜻한 발라드
+In a Sentimental Mood|Duke Ellington & John Coltrane|1963|재즈|그리움,잔잔|비 오는 날,잠들기 전|두 거장이 만나 만든 가장 감상적인 4분
+A Love Supreme, Pt. I – Acknowledgement|John Coltrane|1965|재즈|위로|공부·작업|네 음 주문처럼 반복되는 영적인 모음곡의 시작
+Moanin'|Art Blakey and the Jazz Messengers|1959|재즈|신남|드라이브|피아노와 관악기가 주고받는 하드밥의 대표곡
+Song for My Father|Horace Silver|1965|재즈|잔잔,그리움|드라이브|보사노바 리듬에 실은 아버지에 대한 기억
+Cantaloupe Island|Herbie Hancock|1964|재즈|신남,잔잔|드라이브,출근길|반복되는 피아노 리프가 귀에 남는 소울 재즈
+Watermelon Man|Herbie Hancock|1962|재즈|신남|출근길|가볍게 흥얼거리게 되는 펑키한 데뷔곡
+Maiden Voyage|Herbie Hancock|1965|재즈|잔잔|공부·작업|바다로 떠나는 첫 항해처럼 넓게 펼쳐지는 곡
+Chameleon|Herbie Hancock|1973|재즈|신남|운동,드라이브|신시사이저 베이스로 연 재즈 펑크의 시대
+Footprints|Wayne Shorter|1966|재즈|잔잔|공부·작업|단순한 베이스 라인 위에 신비롭게 쌓이는 곡
+Speak No Evil|Wayne Shorter|1966|재즈|잔잔|비 오는 날|어둡고 묘한 화성이 매력인 블루노트 명곡
+Waltz for Debby|Bill Evans Trio|1962|재즈|설렘,잔잔|잠들기 전|조카를 위해 쓴 사랑스러운 피아노 왈츠
+My Foolish Heart|Bill Evans Trio|1962|재즈|그리움|잠들기 전,비 오는 날|숨죽이듯 연주한 클럽 라이브의 발라드
+Peace Piece|Bill Evans|1959|재즈|잔잔,위로|잠들기 전,공부·작업|두 화음 위에서 떠다니는 즉흥 명상곡
+Autumn Leaves|Bill Evans Trio|1960|재즈|그리움|비 오는 날|세 악기가 대화하듯 연주한 가을 스탠더드
+Autumn Leaves|Cannonball Adderley|1958|재즈|그리움,잔잔|비 오는 날,드라이브|마일스 데이비스의 뮤트 트럼펫이 빛나는 명연
+Mercy, Mercy, Mercy|Cannonball Adderley|1966|재즈|위로,신남|출근길|교회처럼 따뜻한 소울 재즈 라이브
+Blue Bossa|Joe Henderson|1963|재즈|잔잔,신남|드라이브|하드밥과 보사노바가 섞인 잼 세션 단골곡
+The Sidewinder|Lee Morgan|1964|재즈|신남|출근길,드라이브|흥겨운 부갈루 리듬으로 히트한 트럼펫 곡
+Better Git It in Your Soul|Charles Mingus|1959|재즈|신남|운동|교회 부흥회처럼 외치고 손뼉 치는 곡
+Goodbye Pork Pie Hat|Charles Mingus|1959|재즈|그리움,위로|잠들기 전|세상을 떠난 색소폰 연주자를 기리는 애가
+A Night in Tunisia|Dizzy Gillespie|1946|재즈|신남|드라이브|이국적인 리듬으로 비밥을 알린 곡
+Take the "A" Train|Duke Ellington|1941|재즈|신남|출근길|할렘행 지하철을 타고 달리는 스윙
+It Don't Mean a Thing (If It Ain't Got That Swing)|Duke Ellington|1932|재즈|신남|운동|스윙 시대라는 말을 만든 곡
+Caravan|Duke Ellington|1937|재즈|신남|드라이브|사막을 건너는 듯한 이국적인 선율
+Sing, Sing, Sing|Benny Goodman|1937|재즈|신남|운동|드럼 솔로로 몰아치는 스윙의 절정
+In the Mood|Glenn Miller|1939|재즈|신남|출근길,운동|빅밴드 스윙을 대표하는 경쾌한 리프
+Moonlight Serenade|Glenn Miller|1939|재즈|잔잔,설렘|잠들기 전|달빛 아래 춤추던 시절의 감미로운 테마
+Minnie the Moocher|Cab Calloway|1931|재즈|신남|출근길|‘하이디 하이디 호’ 떼창으로 유명한 곡
+Strange Fruit|Billie Holiday|1939|재즈|위로|잠들기 전|인종 폭력을 고발한 무겁고 중요한 노래
+God Bless the Child|Billie Holiday|1941|재즈|위로,잔잔|잠들기 전|스스로 일어서야 한다는 담담한 지혜
+Cheek to Cheek|Ella Fitzgerald & Louis Armstrong|1956|재즈|설렘,신남|드라이브|두 목소리가 주고받는 행복한 듀엣
+Dream a Little Dream of Me|Ella Fitzgerald & Louis Armstrong|1950|재즈|설렘,잔잔|잠들기 전|꿈속에서도 나를 생각해 달라는 다정한 노래
+La Vie en rose|Louis Armstrong|1950|재즈|설렘,잔잔|잠들기 전|에디트 피아프의 샹송을 트럼펫으로 녹인 곡
+My Funny Valentine|Chet Baker|1954|재즈|설렘,그리움|잠들기 전|중성적인 목소리로 부른 가장 유명한 버전
+I Fall in Love Too Easily|Chet Baker|1954|재즈|그리움|비 오는 날|사랑에 너무 쉽게 빠지는 마음을 속삭이듯
+Misty|Erroll Garner|1954|재즈|그리움,잔잔|비 오는 날|비행기 안에서 떠올랐다는 안개 같은 선율
+Body and Soul|Coleman Hawkins|1939|재즈|그리움|잠들기 전|테너 색소폰 즉흥연주의 교과서
+Lullaby of Birdland|Sarah Vaughan|1954|재즈|잔잔|잠들기 전|재즈 클럽 버드랜드에 바치는 자장가
+Cry Me a River|Julie London|1955|재즈|그리움|비 오는 날|기타와 베이스만 곁에 둔 냉정한 이별 노래
+Fever|Peggy Lee|1958|재즈|설렘|드라이브|손가락 튕기는 소리와 베이스만으로 만든 긴장감
+Unforgettable|Nat King Cole|1951|재즈|설렘|잠들기 전|잊을 수 없는 사람에게 건네는 벨벳 같은 목소리
+Smile|Nat King Cole|1954|재즈|위로|잠들기 전|채플린이 작곡한, 울고 싶을 때 웃으라는 노래
+When I Fall in Love|Nat King Cole|1957|재즈|설렘,잔잔|잠들기 전|영원히 사랑하겠다는 고전 러브송
+L-O-V-E|Nat King Cole|1965|재즈|설렘,신남|출근길|알파벳으로 사랑을 풀어 쓴 경쾌한 곡
+I've Got You Under My Skin|Frank Sinatra|1956|재즈|설렘,신남|드라이브|빅밴드가 터지는 순간이 짜릿한 스윙
+Desafinado|Stan Getz & Charlie Byrd|1962|재즈|잔잔|드라이브|미국에 보사노바 열풍을 일으킨 곡
+Wave|Antônio Carlos Jobim|1967|재즈|잔잔,설렘|드라이브,공부·작업|파도처럼 부드럽게 밀려오는 보사노바
+Águas de Março|Elis Regina & Tom Jobim|1974|재즈|신남,잔잔|출근길|두 사람이 주고받는 빗물 같은 단어들
+Mas Que Nada|Sérgio Mendes & Brasil '66|1966|재즈|신남|운동,드라이브|삼바 리듬에 몸이 먼저 반응하는 곡
+Manhã de Carnaval|Luiz Bonfá|1959|재즈|그리움,잔잔|비 오는 날|영화 흑인 오르페의 아련한 기타 선율
+Spain|Chick Corea|1973|재즈|신남|드라이브|아랑후에스 협주곡으로 시작하는 라틴 퓨전
+Birdland|Weather Report|1977|재즈|신남|운동,드라이브|신시사이저 멜로디로 춤추는 퓨전 재즈
+Don't Know Why|Norah Jones|2002|재즈|잔잔,그리움|비 오는 날,잠들기 전|피아노와 나른한 목소리로 그래미를 휩쓴 곡
+Come Away with Me|Norah Jones|2002|재즈|잔잔,설렘|잠들기 전|어디론가 함께 떠나자는 조용한 속삭임
+Sunrise|Norah Jones|2004|재즈|잔잔|출근길|햇살이 천천히 번지는 아침 노래
+The Look of Love|Diana Krall|2001|재즈|설렘|잠들기 전|현악과 피아노로 감싼 우아한 보사노바
+Sway|Michael Bublé|2003|재즈|설렘,신남|드라이브|맘보 리듬에 실은 능청스러운 스윙
+Liquid Spirit|Gregory Porter|2013|재즈|신남,위로|출근길|손뼉과 묵직한 바리톤의 가스펠 재즈
+Strasbourg/St. Denis|Roy Hargrove|2008|재즈|신남|출근길,드라이브|그루브가 살아 있는 현대 하드밥
+Rhapsody in Blue|George Gershwin|1924|재즈|신남,설렘|드라이브|클라리넷 글리산도로 시작하는 재즈와 클래식의 만남

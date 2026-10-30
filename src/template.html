@@ -28,6 +28,8 @@ header{display:flex;justify-content:space-between;align-items:flex-start;gap:12p
 h1{margin:0;font-size:28px;letter-spacing:-.02em}
 .sub{margin:4px 0 0;color:var(--muted);font-size:14px}
 .hbtns{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+.errbox{margin:8px 16px;padding:10px 12px;border-radius:10px;background:var(--accent-soft);color:var(--bad);font-size:13px;font-weight:700}
+button,a,input{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .theme{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:13px}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:20px}
 .group{margin-bottom:14px}
@@ -150,8 +152,16 @@ footer{margin-top:40px;color:var(--muted);font-size:12px;text-align:center}
 </div>
 
 <script>
+// 휴대폰에서 원인을 볼 수 있게: 스크립트 오류를 화면 맨 위에 표시
+window.addEventListener("error", function(e){
+  var d = document.getElementById("errbox");
+  if(!d){ d = document.createElement("div"); d.id = "errbox"; d.className = "errbox"; document.body.insertBefore(d, document.body.firstChild); }
+  d.textContent = "화면에 문제가 생겼어요. 이 문구를 캡처해서 알려 주세요: " + (e.message || "알 수 없는 오류") + (e.lineno ? " (" + e.lineno + "행)" : "");
+});
+</script>
+<script>
 // 받기용 원본: 렌더 전 화면 뼈대 + 이 스크립트. 뷰어가 끼워 넣은 것은 빼고 깨끗한 문서로 다시 조립
-const SAVE_PARTS = { style: document.getElementById("app-style").outerHTML, body: document.querySelector(".wrap").outerHTML, script: document.currentScript.textContent };
+const SAVE_PARTS = { style: document.getElementById("app-style").outerHTML, body: document.querySelector(".wrap").outerHTML, script: (document.currentScript || document.scripts[document.scripts.length-1]).textContent };
 // [제목, 가수, 연도, 장르, 기분[], 상황[], 한 줄 소개] — build.py가 data/songs.txt로 채움
 const SONGS = /*__SONGS__*/[].map(([title,artist,year,genre,moods,scenes,note],i)=>({id:i,title,artist,year,genre,moods,scenes,note,era:eraOf(year),src:srcOf(note)}));
 
