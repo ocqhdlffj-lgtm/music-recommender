@@ -2,7 +2,11 @@
 
 기분·상황·장르·시대를 고르면 7,300곡 중에서 어울리는 곡을 추천하는 **단일 HTML 파일** 프로젝트입니다.
 
-바로 열기(비공개 링크): https://claude.ai/artifact/KNDPE3bwKZpZTy78Yzstty
+**바로 열기(공개, 아이폰 사파리 가능): https://ocqhdlffj-lgtm.github.io/music-recommender/**
+
+아이폰은 사파리에서 열고 공유 → '홈 화면에 추가'하면 앱처럼 쓸 수 있습니다. 받은 HTML 파일은 아이폰 '파일' 앱에서 미리보기로만 열려 동작하지 않습니다.
+
+Claude 비공개 링크: https://claude.ai/artifact/KNDPE3bwKZpZTy78Yzstty
 
 PC에서는 `music-recommender.html`을 더블클릭하면 브라우저에서 열립니다. 외부 API는 쓰지 않습니다.
 
@@ -24,7 +28,7 @@ python build.py                          # music-recommender.html 생성
 python build.py --check                  # 데이터 형식만 검증
 python -m unittest discover -s tests     # 테스트
 ```
-`music-recommender.html`은 생성되는 파일입니다. 곡은 `data/songs.txt`에서, 화면은 `src/template.html`에서 고치세요.
+`music-recommender.html`과 `docs/index.html`(GitHub Pages 사본)은 생성되는 파일입니다. 고친 뒤 `python build.py` → 커밋 → `git push`하면 1~2분 뒤 공개 주소에 반영됩니다. 곡은 `data/songs.txt`에서, 화면은 `src/template.html`에서 고치세요.
 
 ## 기능
 - 필터: 같은 줄 안에서는 OR, 서로 다른 줄끼리는 AND
