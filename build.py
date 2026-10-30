@@ -75,8 +75,13 @@ def main(argv):
     n = apply_edits(songs)
     print(f"{len(songs)}곡 검증 통과" + (f", 고친 태그 {n}곡 반영" if n else ""))
     if "--check" in argv: return
-    (ROOT/"music-recommender.html").write_text(render(songs), encoding="utf-8")
-    print("music-recommender.html 생성")
+    html = render(songs)
+    (ROOT/"music-recommender.html").write_text(html, encoding="utf-8")
+    # GitHub Pages 사본 (main 브랜치 /docs)
+    (ROOT/"docs").mkdir(exist_ok=True)
+    (ROOT/"docs/index.html").write_text(html, encoding="utf-8")
+    (ROOT/"docs/.nojekyll").write_text("", encoding="utf-8")
+    print("music-recommender.html, docs/index.html 생성")
 
 if __name__ == "__main__":
     main(sys.argv[1:])
