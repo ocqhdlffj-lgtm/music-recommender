@@ -32,7 +32,7 @@ class LoadSongs(unittest.TestCase):
 
     def test_jazz_album_data_is_valid(self):
         jazz = build.load_songs(build.FILES[2])
-        self.assertGreaterEqual(len(jazz), 1500)
+        self.assertGreaterEqual(len(jazz), 4500)
         self.assertTrue(all(s[3] == "재즈" and s[6].startswith("명반 · ") for s in jazz))
         # 위키 문법 찌꺼기가 제목에 남지 않아야 함
         self.assertFalse([s[0] for s in jazz if any(x in s[0] for x in ("[[", "]]", "{{", "}}", "="))])
