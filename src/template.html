@@ -43,7 +43,7 @@ button,a,input{touch-action:manipulation;-webkit-tap-highlight-color:transparent
 .chip{border:1px solid transparent;background:var(--chip);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:14px;cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-input[type=search]{flex:1;min-width:180px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:9px 12px;font-size:15px}
+input[type=search]{flex:1;min-width:180px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:9px 12px;font-size:16px}
 .btn{border:0;background:var(--accent);color:#fff;border-radius:10px;padding:9px 14px;font-size:14px;font-weight:700;cursor:pointer}
 .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);font-weight:500}
 .tabs{display:flex;gap:4px;margin-top:22px;border-bottom:1px solid var(--line)}
@@ -126,7 +126,7 @@ footer{margin-top:40px;color:var(--muted);font-size:12px;text-align:center}
     <div class="group"><div class="label">시대</div><div class="chips" id="f-era"></div></div>
     <div class="group"><div class="label">목록</div><div class="chips" id="f-src"></div></div>
     <div class="group row">
-      <input type="search" id="q" placeholder="곡명·가수 검색">
+      <input type="search" id="q" placeholder="곡명·가수·앨범 검색 (예: 아이유, 비틀즈)" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
       <button class="btn" id="pickBtn" type="button">🎲 한 곡만 골라줘</button>
       <button class="btn ghost" id="resetBtn" type="button">초기화</button>
     </div>
@@ -230,14 +230,23 @@ function buildChips(){
   }
 }
 
+// 검색용: 소문자 + 공백·기호 제거, 해외 가수는 한글 이름도 붙여 둠
+const ARTIST_KO = {"Miles Davis":"마일스 데이비스","Ella Fitzgerald":"엘라 피츠제럴드","John Coltrane":"존 콜트레인,콜트레인","Frank Sinatra":"프랭크 시나트라,시나트라","Nina Simone":"니나 시몬","Duke Ellington":"듀크 엘링턴","Thelonious Monk":"델로니어스 몽크,텔로니어스 몽크,몽크","Bill Evans":"빌 에반스,빌 에번스","Drake":"드레이크","Billie Holiday":"빌리 홀리데이","Norah Jones":"노라 존스","Nat King Cole":"냇 킹 콜","Charlie Parker":"찰리 파커","Charles Mingus":"찰스 밍거스,밍거스","Herbie Hancock":"허비 행콕","Clifford Brown":"클리포드 브라운","Mariah Carey":"머라이어 캐리","Madonna":"마돈나","Chick Corea":"칙 코리아","Taylor Swift":"테일러 스위프트","Vince Guaraldi":"빈스 과랄디","Chet Baker":"쳇 베이커","Rihanna":"리한나","Diana Krall":"다이애나 크롤","Weather Report":"웨더 리포트","Sonny Rollins":"소니 롤린스","Elton John":"엘튼 존","Count Basie":"카운트 베이시","The Beatles":"비틀즈,비틀스","Pat Metheny":"팻 메시니,팻 매스니","Michael Jackson":"마이클 잭슨","Dave Brubeck":"데이브 브루벡","Whitney Houston":"휘트니 휴스턴","Morgan Wallen":"모건 월렌","Janet Jackson":"재닛 잭슨","Maroon 5":"마룬 5,마룬파이브","Usher":"어셔","Stevie Wonder":"스티비 원더","Elvis Presley":"엘비스 프레슬리,엘비스","Cannonball Adderley":"캐논볼 애덜리","Ariana Grande":"아리아나 그란데","Wes Montgomery":"웨스 몽고메리","Lee Morgan":"리 모건","Kamasi Washington":"카마시 워싱턴","Stan Getz":"스탄 게츠,스탠 게츠","Modern Jazz Quartet":"모던 재즈 쿼텟","Keith Jarrett":"키스 자렛","Freddie Hubbard":"프레디 허버드","Robert Glasper":"로버트 글래스퍼","Post Malone":"포스트 말론","Pink":"핑크","Louis Armstrong":"루이 암스트롱","Lady Gaga":"레이디 가가","Katy Perry":"케이티 페리","Jimmy Smith":"지미 스미스","Jamie Cullum":"제이미 컬럼","Chris Brown":"크리스 브라운","The Weeknd":"위켄드,더 위켄드","Prince":"프린스","Ornette Coleman":"오넷 콜먼","Justin Bieber":"저스틴 비버","Julie London":"줄리 런던","Horace Silver":"호레이스 실버","Eminem":"에미넴","Daryl Hall":"홀 앤 오츠","Phil Collins":"필 콜린스","Joe Henderson":"조 헨더슨","Gregory Porter":"그레고리 포터","Esperanza Spalding":"에스페란자 스폴딩","Eric Dolphy":"에릭 돌피","Ed Sheeran":"에드 시런","Chicago":"시카고","Cassandra Wilson":"카산드라 윌슨","Brad Mehldau":"브래드 멜다우","Sarah Vaughan":"사라 본","Rod Stewart":"로드 스튜어트","Oscar Peterson":"오스카 피터슨","Nelly":"넬리","Marvin Gaye":"마빈 게이","Kendrick Lamar":"켄드릭 라마","Kelly Clarkson":"켈리 클락슨","Jay-Z":"제이지","Dexter Gordon":"덱스터 고든","Tony Bennett":"토니 베넷","The Temptations":"템테이션스","The Supremes":"슈프림스","The Carpenters":"카펜터스","Nicki Minaj":"니키 미나즈","Justin Timberlake":"저스틴 팀버레이크","Jaco Pastorius":"자코 파스토리우스","George Michael":"조지 마이클","Duran Duran":"듀란 듀란","Doja Cat":"도자 캣","Destiny's Child":"데스티니스 차일드","Bruno Mars":"브루노 마스","Art Blakey":"아트 블레이키","The Rolling Stones":"롤링 스톤즈,롤링스톤즈","Paul McCartney":"폴 매카트니","Olivia Newton-John":"올리비아 뉴튼 존","Nickelback":"니켈백","Kanye West":"칸예 웨스트","Jennifer Lopez":"제니퍼 로페즈","Donna Summer":"도나 썸머","Diana Ross":"다이애나 로스","Celine Dion":"셀린 디온","Bryan Adams":"브라이언 아담스","Britney Spears":"브리트니 스피어스","Boyz II Men":"보이즈 투 맨","Bon Jovi":"본 조비","Billy Joel":"빌리 조엘","Billie Eilish":"빌리 아일리시","Bee Gees":"비지스","Barbra Streisand":"바브라 스트라이샌드","Bad Bunny":"배드 버니","Aretha Franklin":"아레사 프랭클린","Black Eyed Peas":"블랙 아이드 피스","Selena Gomez":"셀레나 고메즈","Lionel Richie":"라이오넬 리치","Imagine Dragons":"이매진 드래곤스","George Benson":"조지 벤슨","Coldplay":"콜드플레이","Cher":"셰어","Alicia Keys":"알리샤 키스","Aerosmith":"에어로스미스","Adele":"아델","Wynton Marsalis":"윈턴 마살리스","Wayne Shorter":"웨인 쇼터","Shawn Mendes":"숀 멘데스","Ray Charles":"레이 찰스","Roy Orbison":"로이 오비슨","Eagles":"이글스","Earth, Wind & Fire":"어스 윈드 앤 파이어","Christina Aguilera":"크리스티나 아길레라","Backstreet Boys":"백스트리트 보이즈","Avril Lavigne":"에이브릴 라빈","Dua Lipa":"두아 리파","Miley Cyrus":"마일리 사이러스","Sabrina Carpenter":"사브리나 카펜터","Queen":"퀸","ABBA":"아바","Oasis":"오아시스","Nirvana":"너바나","Radiohead":"라디오헤드","Linkin Park":"린킨 파크","Harry Styles":"해리 스타일스","Olivia Rodrigo":"올리비아 로드리고","Sam Smith":"샘 스미스","Lewis Capaldi":"루이스 카팔디","Charlie Puth":"찰리 푸스","Billy Ocean":"빌리 오션","Cyndi Lauper":"신디 로퍼","Bob Dylan":"밥 딜런","Simon & Garfunkel":"사이먼 앤 가펑클","Carole King":"캐롤 킹","John Lennon":"존 레논","Michael Bublé":"마이클 부블레","Antônio Carlos Jobim":"안토니오 카를로스 조빔,조빔","Louis Armstrong":"암스트롱"};
+function normQ(v){ return String(v||"").toLowerCase().replace(/[\s.,'’"“”!?·\-–—()&/]+/g, ""); }
+for(const s of SONGS){
+  let ko = "";
+  for(const k in ARTIST_KO) if(s.artist.toLowerCase().indexOf(k.toLowerCase())>=0) ko += ARTIST_KO[k] + ",";
+  s.hay = normQ(s.title + s.artist + ko + s.note.replace(/^(차트|명반) · /, "") + s.genre);
+}
+
 function matches(s){
   for(const [name,f] of Object.entries(FILTERS)){
     const sel = state[name]; if(!sel.size) continue;
     const v = s[f.key];
     if(Array.isArray(v) ? !v.some(x=>sel.has(x)) : !sel.has(v)) return false;
   }
-  const q = state.q.trim().toLowerCase();
-  if(q && !(s.title+" "+s.artist).toLowerCase().includes(q)) return false;
+  const q = normQ(state.q);
+  if(q && !s.hay.includes(q)) return false;
   return true;
 }
 
@@ -475,13 +484,16 @@ document.getElementById("grid").addEventListener("click",e=>{
   store.set("music.favs",[...favs]); render(true);
 });
 document.getElementById("moreBtn").onclick = () => { state.limit += PAGE; render(true); };
-document.getElementById("q").addEventListener("input",e=>{ state.q=e.target.value; state.pick=null; state.similar=null; state.editing=null; render(); });
+const qIn = document.getElementById("q");
+function onSearch(){ if(qIn.value===state.q) return; state.q=qIn.value; state.pick=null; state.similar=null; state.editing=null; render(); }
+["input","keyup","change","search","compositionend"].forEach(ev=>qIn.addEventListener(ev, onSearch));
+setInterval(onSearch, 300);
 document.getElementById("pickBtn").onclick = () => {
   const list = current(); if(!list.length){ state.pick=null; render(); return; }
   const top = score(list[0]); const pool = list.filter(s=>score(s)===top);
   state.pick = pool[Math.floor(Math.random()*pool.length)].id; render(); window.scrollTo({top:document.querySelector(".tabs").offsetTop-8,behavior:"smooth"});
 };
-document.getElementById("resetBtn").onclick = () => { for(const k of Object.keys(FILTERS)) state[k].clear(); state.q=""; state.pick=null; state.similar=null; document.getElementById("q").value=""; buildChips(); render(); };
+document.getElementById("resetBtn").onclick = () => { for(const k of Object.keys(FILTERS)) state[k].clear(); state.q=""; state.pick=null; state.similar=null; qIn.value=""; buildChips(); render(); };
 document.getElementById("simClose").onclick = () => { state.similar=null; render(); };
 const birthIn = document.getElementById("birth");
 birthIn.addEventListener("input", () => {
