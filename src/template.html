@@ -5,20 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>오늘의 음악</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<style>
+<style id="app-style">
 :root{
   --bg:#f7f5f0; --surface:#ffffff; --ink:#1d1b18; --muted:#6b665d; --line:#e4dfd4;
-  --accent:#c2410c; --accent-soft:#fde8dc; --chip:#efebe2; --star:#d97706;
+  --accent:#c2410c; --accent-soft:#fde8dc; --chip:#efebe2; --star:#d97706; --ok:#15803d; --bad:#b91c1c;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#161513; --surface:#211f1c; --ink:#f1ede6; --muted:#a39d92; --line:#36332e;
-    --accent:#fb923c; --accent-soft:#3a2416; --chip:#2c2a26; --star:#fbbf24; color-scheme:dark;
+    --accent:#fb923c; --accent-soft:#3a2416; --chip:#2c2a26; --star:#fbbf24; --ok:#4ade80; --bad:#f87171; color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#161513; --surface:#211f1c; --ink:#f1ede6; --muted:#a39d92; --line:#36332e;
-  --accent:#fb923c; --accent-soft:#3a2416; --chip:#2c2a26; --star:#fbbf24; color-scheme:dark;
+  --accent:#fb923c; --accent-soft:#3a2416; --chip:#2c2a26; --star:#fbbf24; --ok:#4ade80; --bad:#f87171; color-scheme:dark;
 }
 *{box-sizing:border-box}
 [hidden],.qhide{display:none!important}
@@ -27,6 +27,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard","Ap
 header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
 h1{margin:0;font-size:28px;letter-spacing:-.02em}
 .sub{margin:4px 0 0;color:var(--muted);font-size:14px}
+.hbtns{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
 .theme{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:13px}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:20px}
 .group{margin-bottom:14px}
@@ -89,8 +90,8 @@ input[type=search]{flex:1;min-width:180px;border:1px solid var(--line);backgroun
 .qopt{text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:12px 14px;font-size:15px;cursor:pointer;min-width:0}
 .qopt:hover:not(:disabled){border-color:var(--accent)}
 .qopt:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.qopt.right{border-color:#15803d;background:color-mix(in srgb,#15803d 14%,var(--bg))}
-.qopt.wrong{border-color:#b91c1c;background:color-mix(in srgb,#b91c1c 12%,var(--bg))}
+.qopt.right{border-color:var(--ok);background:rgba(34,160,80,.14)}
+.qopt.wrong{border-color:var(--bad);background:rgba(220,40,40,.12)}
 .qopt:disabled{cursor:default}
 .qfeed{margin:0;font-size:14px;font-weight:700}
 .qrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -106,7 +107,11 @@ footer{margin-top:40px;color:var(--muted);font-size:12px;text-align:center}
       <h1>🎧 오늘의 음악</h1>
       <p class="sub">기분과 상황을 고르면 <span id="total"></span>곡 중에서 어울리는 노래를 골라 드려요.</p>
     </div>
-    <button class="theme" id="themeBtn" type="button">테마 전환</button>
+    <div class="hbtns">
+      <button class="theme" id="dlBtn" type="button">⬇ HTML 받기</button>
+      <button class="theme" id="themeBtn" type="button">테마 전환</button>
+      <span class="toast" id="dlMsg" role="status"></span>
+    </div>
   </header>
 
   <section class="panel" id="filters" aria-label="필터">
@@ -145,6 +150,8 @@ footer{margin-top:40px;color:var(--muted);font-size:12px;text-align:center}
 </div>
 
 <script>
+// 받기용 원본: 렌더 전 화면 뼈대 + 이 스크립트. 뷰어가 끼워 넣은 것은 빼고 깨끗한 문서로 다시 조립
+const SAVE_PARTS = { style: document.getElementById("app-style").outerHTML, body: document.querySelector(".wrap").outerHTML, script: document.currentScript.textContent };
 // [제목, 가수, 연도, 장르, 기분[], 상황[], 한 줄 소개] — build.py가 data/songs.txt로 채움
 const SONGS = /*__SONGS__*/[].map(([title,artist,year,genre,moods,scenes,note],i)=>({id:i,title,artist,year,genre,moods,scenes,note,era:eraOf(year),src:srcOf(note)}));
 
@@ -362,7 +369,7 @@ function renderQuiz(){
   if(quiz.picked!==null){
     const ok = q.opts[quiz.picked].ok, s = q.song;
     const url = "https://www.youtube.com/results?search_query="+encodeURIComponent(s.artist+" "+s.title);
-    feed = `<p class="qfeed" style="color:${ok?"#15803d":"#b91c1c"}">${ok?"정답!":"아쉬워요."} ${esc(s.title)} · ${esc(s.artist)} · ${s.year}년</p>
+    feed = `<p class="qfeed" style="color:${ok?"var(--ok)":"var(--bad)"}">${ok?"정답!":"아쉬워요."} ${esc(s.title)} · ${esc(s.artist)} · ${s.year}년</p>
       <p class="qsub">${esc(s.note.replace("차트 · ",""))}</p>
       <div class="qrow"><button class="btn" id="qNext" type="button">${quiz.i+1<quiz.qs.length?"다음 문제":"결과 보기"}</button><a class="listen" href="${url}" target="_blank" rel="noopener">▶ 듣기</a></div>`;
   }
@@ -480,6 +487,25 @@ const savedTheme = store.get("music.theme",null); if(savedTheme) root.dataset.th
 document.getElementById("themeBtn").onclick = () => {
   const dark = root.dataset.theme ? root.dataset.theme==="dark" : matchMedia("(prefers-color-scheme: dark)").matches;
   root.dataset.theme = dark?"light":"dark"; store.set("music.theme",root.dataset.theme);
+};
+
+const dlCap = window.claude && window.claude.use ? window.claude.use("downloads").catch(()=>null) : Promise.resolve(null);
+function standaloneHtml(){
+  return `<!doctype html>\n<html lang="ko">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n<title>오늘의 음악</title>\n${SAVE_PARTS.style}\n</head>\n<body>\n${SAVE_PARTS.body}\n<script>${SAVE_PARTS.script}<\/script>\n</body>\n</html>\n`;
+}
+document.getElementById("dlBtn").onclick = async () => {
+  const msg = document.getElementById("dlMsg");
+  const html = standaloneHtml(), name = "music-recommender.html";
+  if(!window.claude){
+    // 일반 브라우저로 연 파일: 그냥 내려받기
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([html], {type:"text/html"})); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+    msg.textContent = "내려받기를 시작했어요."; return;
+  }
+  const dl = await dlCap;
+  if(!dl){ msg.textContent = "이 화면에서는 파일을 받을 수 없어요."; return; }
+  try{ await dl.save({filename:name, data:new Blob([html])}); msg.textContent = "저장했어요."; }
+  catch(e){ msg.textContent = e && e.code==="declined" ? "" : e && e.code==="rate_limited" ? "잠시 뒤 다시 눌러 주세요." : "이 화면에서는 파일을 받을 수 없어요."; }
 };
 
 document.getElementById("total").textContent = SONGS.length.toLocaleString("ko-KR");
