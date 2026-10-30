@@ -109,7 +109,7 @@ footer{margin-top:40px;color:var(--muted);font-size:12px;text-align:center}
     <button class="theme" id="themeBtn" type="button">테마 전환</button>
   </header>
 
-  <section class="panel" aria-label="필터">
+  <section class="panel" id="filters" aria-label="필터">
     <div class="group"><div class="label">지금 기분</div><div class="chips" id="f-mood"></div></div>
     <div class="group"><div class="label">상황</div><div class="chips" id="f-scene"></div></div>
     <div class="group"><div class="label">장르</div><div class="chips" id="f-genre"></div></div>
@@ -204,7 +204,7 @@ function buildChips(){
       const b = document.createElement("button");
       b.type="button"; b.className="chip"; b.textContent=o;
       b.setAttribute("aria-pressed", state[name].has(o));
-      b.onclick = () => { state[name].has(o)?state[name].delete(o):state[name].add(o); state.pick=null; state.similar=null; b.setAttribute("aria-pressed",state[name].has(o)); render(); };
+      b.onclick = () => { state[name].has(o)?state[name].delete(o):state[name].add(o); state.pick=null; state.similar=null; state.editing=null; b.setAttribute("aria-pressed",state[name].has(o)); render(); };
       box.appendChild(b);
     }
   }
@@ -275,6 +275,7 @@ function render(keepLimit){
   if(state.tab==="then") renderThen();
   const qOn = state.tab==="quiz" && !simOn;
   document.getElementById("quiz").hidden = !qOn;
+  document.getElementById("filters").hidden = qOn;
   for(const id of ["count","grid","moreBtn"]) document.getElementById(id).classList.toggle("qhide", qOn);
   if(qOn){ renderQuiz(); document.getElementById("tools").hidden = true; return; }
   renderTools();
@@ -454,7 +455,7 @@ document.getElementById("grid").addEventListener("click",e=>{
   store.set("music.favs",[...favs]); render(true);
 });
 document.getElementById("moreBtn").onclick = () => { state.limit += PAGE; render(true); };
-document.getElementById("q").addEventListener("input",e=>{ state.q=e.target.value; state.pick=null; state.similar=null; render(); });
+document.getElementById("q").addEventListener("input",e=>{ state.q=e.target.value; state.pick=null; state.similar=null; state.editing=null; render(); });
 document.getElementById("pickBtn").onclick = () => {
   const list = current(); if(!list.length){ state.pick=null; render(); return; }
   const top = score(list[0]); const pool = list.filter(s=>score(s)===top);
