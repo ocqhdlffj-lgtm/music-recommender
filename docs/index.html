@@ -63,6 +63,7 @@ input[type=search]{flex:1;min-width:180px;border:1px solid var(--line);backgroun
 .tags{display:flex;flex-wrap:wrap;gap:4px}
 .tag{font-size:12px;background:var(--chip);color:var(--muted);border-radius:6px;padding:2px 7px}
 .listen{font-size:13px;color:var(--accent);text-decoration:none;font-weight:700}
+.svc{font-size:12px;color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:2px 8px}
 .more{display:flex;justify-content:center;margin-top:16px}
 .empty{color:var(--muted);text-align:center;padding:40px 0}
 .then{display:flex;flex-direction:column;gap:10px;margin-top:14px}
@@ -278,7 +279,8 @@ function esc(t){ return String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",
 
 function card(s){
   const fav = favs.has(favKey(s));
-  const url = "https://www.youtube.com/results?search_query="+encodeURIComponent(s.artist+" "+s.title);
+  const qq = encodeURIComponent(s.artist+" "+s.title);
+  const url = "https://www.youtube.com/results?search_query="+qq;
   const age = state.tab==="then" && state.similar===null && state.birth ? `<span class="tag age">${s.year-state.birth}살 때</span>` : "";
   const mine = edits[favKey(s)] ? `<span class="tag mine">✎ 고친 태그</span>` : "";
   const tags = age + mine + [s.genre, s.year+"년", ...s.moods, ...s.scenes].map(t=>`<span class="tag">${esc(t)}</span>`).join("");
@@ -288,7 +290,7 @@ function card(s){
     <button class="fav" type="button" data-id="${s.id}" aria-pressed="${fav}" aria-label="즐겨찾기">${fav?"★":"☆"}</button></div>
     <p class="note${/^(차트|명반) ·/.test(s.note)?" src":""}">${esc(s.note)}</p>
     ${body}
-    <div class="actions"><a class="listen" href="${url}" target="_blank" rel="noopener">▶ 듣기</a><button class="linkbtn sim" type="button" data-id="${s.id}">비슷한 곡 →</button><button class="linkbtn edit" type="button" data-id="${s.id}">태그 고치기</button></div>
+    <div class="actions"><a class="listen" href="${url}" target="_blank" rel="noopener">▶ 유튜브</a><a class="svc" href="https://www.melon.com/search/total/index.htm?q=${qq}" target="_blank" rel="noopener">멜론</a><a class="svc" href="https://open.spotify.com/search/${qq}" target="_blank" rel="noopener">스포티파이</a><a class="svc" href="https://music.apple.com/kr/search?term=${qq}" target="_blank" rel="noopener">애플뮤직</a><button class="linkbtn sim" type="button" data-id="${s.id}">비슷한 곡 →</button><button class="linkbtn edit" type="button" data-id="${s.id}">태그 고치기</button></div>
   </article>`;
 }
 
