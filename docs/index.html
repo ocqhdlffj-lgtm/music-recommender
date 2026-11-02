@@ -491,7 +491,12 @@ setInterval(onSearch, 300);
 document.getElementById("pickBtn").onclick = () => {
   const list = current(); if(!list.length){ state.pick=null; render(); return; }
   const top = score(list[0]); const pool = list.filter(s=>score(s)===top);
-  state.pick = pool[Math.floor(Math.random()*pool.length)].id; render(); window.scrollTo({top:document.querySelector(".tabs").offsetTop-8,behavior:"smooth"});
+  // 재즈 명반 곡이 절반 넘게 차지하므로 장르를 먼저 뽑음 (곡 수의 제곱근 비율)
+  const byGenre = {}; for(const s of pool) (byGenre[s.genre] = byGenre[s.genre] || []).push(s);
+  const gs = Object.keys(byGenre), w = gs.map(g=>Math.sqrt(byGenre[g].length));
+  let r = Math.random()*w.reduce((a,b)=>a+b,0), gi = 0; while(r >= w[gi] && gi < gs.length-1){ r -= w[gi]; gi++; }
+  const g = byGenre[gs[gi]];
+  state.pick = g[Math.floor(Math.random()*g.length)].id; render(); window.scrollTo({top:document.querySelector(".tabs").offsetTop-8,behavior:"smooth"});
 };
 document.getElementById("resetBtn").onclick = () => { for(const k of Object.keys(FILTERS)) state[k].clear(); state.q=""; state.pick=null; state.similar=null; qIn.value=""; buildChips(); render(); };
 document.getElementById("simClose").onclick = () => { state.similar=null; render(); };
