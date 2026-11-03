@@ -37,6 +37,12 @@ class LoadSongs(unittest.TestCase):
         # 위키 문법 찌꺼기가 제목에 남지 않아야 함
         self.assertFalse([s[0] for s in jazz if any(x in s[0] for x in ("[[", "]]", "{{", "}}", "="))])
 
+    def test_artist_album_data_is_valid(self):
+        songs = build.load_songs(build.FILES[3])
+        self.assertGreaterEqual(len(songs), 1000)
+        self.assertTrue(all(s[6].startswith("앨범 · ") for s in songs))
+        self.assertFalse([s[0] for s in songs if any(x in s[0] for x in ("[[", "]]", "{{", "}}"))])
+
     def test_load_all_prefers_first_file(self):
         a = write("같은곡|가수|2020|팝|신남|운동|직접 쓴 소개\n")
         b = write("같은곡|가수|2020|팝|잔잔|운동|차트 · 출처\n다른곡|가수|2021|팝|신남|운동|차트 · 출처\n")
