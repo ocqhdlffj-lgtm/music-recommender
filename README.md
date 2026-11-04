@@ -1,6 +1,6 @@
 # 오늘의 음악 (음악 추천기)
 
-기분·상황·장르·시대를 고르면 15,922곡 중에서 어울리는 곡을 추천하는 **단일 HTML 파일** 프로젝트입니다.
+기분·상황·장르·시대를 고르면 17,402곡 중에서 어울리는 곡을 추천하는 **단일 HTML 파일** 프로젝트입니다.
 
 **바로 열기(공개, 아이폰 사파리 가능): https://ocqhdlffj-lgtm.github.io/music-recommender/**
 
@@ -16,7 +16,7 @@ PC에서는 `music-recommender.html`을 더블클릭하면 브라우저에서 �
 ```
 data/songs.txt       직접 고른 203곡 (재즈 66곡 포함) (제목|가수|연도|장르|기분|상황|한 줄 소개)
 data/chart_songs.txt 차트 곡 5,586곡 (같은 형식, 소개 칸에 출처)
-data/artist_albums.txt 가수별 정규 앨범 수록곡 2,499곡 (발라드·포크·인디·J-pop 46명, 소개 칸 = 앨범 · 앨범 (연도))
+data/artist_albums.txt 가수별 정규 앨범 수록곡 3,979곡 (발라드·포크·인디·J-pop·트로트·뉴에이지 75명, 소개 칸 = 앨범 · 앨범 (연도))
 data/jazz_albums.txt 재즈 명반 수록곡 5,294곡 (소개 칸 = 명반 · 앨범 (연도))
 src/template.html    화면·스크립트 템플릿
 build.py             위 데이터 + 템플릿 -> music-recommender.html
